@@ -750,7 +750,7 @@ async function syncLiveProgress(){
 function applyAssignment(a){
  state.active_assignment={...a,persistent:true};
  state.crew=a.crew_name||a.crew_lead||'Assigned crew';
- document.getElementById('crewName').value=state.crew;
+ const crewNameInput=document.getElementById('crewName');if(crewNameInput)crewNameInput.value=state.crew;
  save();applyAssignmentFilters();renderCurrentAssignment();
 }
 
@@ -1405,7 +1405,9 @@ function exportKML(){
  return `<b>${s.sign_no}</b> — ${signState(s.id).completed?'Complete':'Incomplete'}<br>Anchor: ${s.anchor_type}<br>${postText}<br>Dimension: ${s.installation_dimension??''}${signState(s.id).notes?'<br>Notes: '+signState(s.id).notes:''}`;
 }).join('<hr>');p+=`<Placemark><name>${esc(l.label)}</name><description><![CDATA[${desc}]]></description><styleUrl>#${sty}</styleUrl><Point><coordinates>${l.longitude},${l.latitude},0</coordinates></Point></Placemark>`}p+='</Document></kml>';download('Select_Signing_Updated.kml',p,'application/vnd.google-earth.kml+xml')
 }
-document.getElementById('projectTitle').textContent=PROJECT.project_name+' · Crew Current Assignment';document.getElementById('crewName').value=state.crew||'';document.getElementById('timelineDate').value=new Date().toISOString().slice(0,10);
+document.getElementById('projectTitle').textContent=PROJECT.project_name+' · Crew Current Assignment';
+const initialCrewNameInput=document.getElementById('crewName');if(initialCrewNameInput)initialCrewNameInput.value=state.crew||'';
+const initialTimelineDate=document.getElementById('timelineDate');if(initialTimelineDate)initialTimelineDate.value=new Date().toISOString().slice(0,10);
 (async()=>{
  if(!v2LoadStoredSession()){v2LoginOverlay();return}
  try{await v2LoadProfile()}catch(e){localStorage.removeItem("select-signing-v2-session");v2LoginOverlay();return}
