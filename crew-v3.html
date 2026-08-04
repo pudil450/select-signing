@@ -568,10 +568,12 @@ async function loadRouteOverrides(){
   LIVE_ROUTE_OVERRIDES={};
   for(const row of rows)LIVE_ROUTE_OVERRIDES[row.sign_id]=row;
   LIVE_ROUTE_OVERRIDES_READY=true;
+  ROADWAY_SIDE_STOPS=buildRoadwaySideStops();
   return rows.length;
  }catch(error){
   console.error("Route overrides unavailable; using embedded fallback routing.",error);
   LIVE_ROUTE_OVERRIDES_READY=false;
+  ROADWAY_SIDE_STOPS=buildRoadwaySideStops();
   return 0;
  }
 }
@@ -1068,7 +1070,7 @@ function buildRoadwaySideStops(){
  }
  return stops;
 }
-const ROADWAY_SIDE_STOPS=buildRoadwaySideStops();
+let ROADWAY_SIDE_STOPS=[];
 function stopPlanDirection(stop){return stop._roadway_side||locPlanDirection(stop)}
 function stopRouteOrder(stop){
  if(stop&&stop._route_order!==undefined&&stop._route_order!==null)return Number(stop._route_order);
@@ -1208,6 +1210,11 @@ function fieldFilteredLocations(){
    &&(!q||text.includes(q));
  });
  list.sort(stopTravelCompare);
+ const startId=state.active_assignment?.start_item_id;
+ if(startId){
+  const startIndex=list.findIndex(stop=>routeStopSigns(stop).some(sign=>sign.id===startId));
+  if(startIndex>0)list=list.slice(startIndex);
+ }
  return list;
 }
 function fieldColorClass(l){
@@ -1231,7 +1238,7 @@ function renderFieldLocations(list){
  out.innerHTML=list.map((l,idx)=>{
   const locked=activeIndex>=0&&idx>activeIndex;
   const drive=`https://www.google.com/maps/dir/?api=1&destination=${l.latitude},${l.longitude}&travelmode=driving`;
-  const signs=locSigns(l);
+  const signs=routeStopSigns(l);
   if(locked){
    return `<div class="stop-card locked-stop"><h3>Stop ${idx+1} — ${esc(l.route)} MP ${l.milepost??''}</h3>
     <p><b>${esc(l.label)}</b></p>
@@ -1243,7 +1250,7 @@ function renderFieldLocations(list){
   const resolvedClass=stopResolved&&!stopComplete?' resolved-not-installed':'';
   return `<div class="stop-card ${fieldColorClass(l)}${resolvedClass}"><h3>Stop ${idx+1} — ${esc(l.route)} MP ${l.milepost??''}</h3>
    <p><b>${esc(l.label)}</b></p>
-   ${idx===activeIndex?`<a class="route-link" target="_blank" href="${drive}" onclick="startDrive('${l.id}')">Drive here</a>`:''}
+   ${idx===activeIndex?`<a class="route-link" target="_blank" href="${drive}" onclick="startDrive('${l._source_location_id||l.id}')">Drive here</a>`:''}
    ${signs.map(s=>fieldSignHtml(s)).join('')}</div>`;
  }).join('')||'<div class="card">No locations match these filters.</div>';
 }
