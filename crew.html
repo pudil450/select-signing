@@ -301,31 +301,86 @@ function assignmentLocations(a){
 
 async function loadLiveAssignment(){
  const params=new URLSearchParams(location.search);
- const typed=document.getElementById("crewName").value.trim();
- const crew_code=liveCrewCode(params.get("crew")||typed||localStorage.getItem("select-signing-live-crew")||"");
- if(!crew_code){alert("Enter the crew name or open the crew link supplied by the Office.");return}
+ const input=document.getElementById("crewName");
+ const typed=(input?.value||"").trim();
+
+ // Accept a crew name/code OR the complete crew URL copied by Office.
+ let supplied=params.get("crew")||typed||localStorage.getItem("select-signing-live-crew")||"";
+ if(/^https?:\/\//i.test(supplied)){
+  try{
+   const pastedUrl=new URL(supplied);
+   supplied=pastedUrl.searchParams.get("crew")||"";
+  }catch(e){}
+ }
+ const crew_code=liveCrewCode(supplied);
+
+ if(!crew_code){
+  alert("Enter the crew name, crew code, or paste the complete crew link.");
+  return;
+ }
+
+ if(input)input.value=crew_code;
+
  try{
-  const response=await fetch(LIVE_SUPABASE_URL+"/rest/v1/crew_live_assignments?crew_code=eq."+encodeURIComponent(crew_code)+"&status=eq.active&select=*&limit=1",{headers:LIVE_HEADERS});
+  // Load the newest row for this crew. Do not hide it just because its status changed.
+  const query=
+   LIVE_SUPABASE_URL+
+   "/rest/v1/crew_live_assignments"+
+   "?crew_code=eq."+encodeURIComponent(crew_code)+
+   "&select=*"+
+   "&order=updated_at.desc"+
+   "&limit=1";
+
+  const response=await fetch(query,{headers:LIVE_HEADERS});
   if(!response.ok)throw new Error(await response.text());
+
   const rows=await response.json();
-  if(!rows.length){alert("No active assignment was found for "+crew_code+".");return}
-  const row=rows[0],progress=row.progress_data||{};
+  if(!rows.length){
+   alert("No assignment was found for crew code: "+crew_code);
+   return;
+  }
+
+  const row=rows[0];
+  const progress=row.progress_data||{};
+
   for(const [id,incoming] of Object.entries(progress.signs||{})){
    if(state.signs[id])state.signs[id]={...state.signs[id],...incoming};
   }
   for(const req of (progress.crew_requests||[])){
    if(!state.crew_requests.some(x=>x.id===req.id))state.crew_requests.push(req);
   }
+
   applyAssignment(row.assignment_data);
   localStorage.setItem("select-signing-live-crew",crew_code);
   history.replaceState(null,"",location.pathname+"?crew="+encodeURIComponent(crew_code));
-  alert("Assignment loaded for "+(row.crew_name||crew_code)+".");
+
+  const count=assignedSigns().length;
+  if(count===0){
+   alert(
+    "Assignment found for "+(row.crew_name||crew_code)+
+    ", but no project locations matched route "+
+    (row.assignment_data?.route||"(blank)")+" / "+
+    (row.assignment_data?.direction||"(blank)")+"."
+   );
+   return;
+  }
+
+  if(typeof showTab==="function"){
+   const fieldButton=[...document.querySelectorAll("nav button")]
+    .find(b=>/field|current assignment/i.test(b.textContent||""));
+   if(fieldButton)showTab("field",fieldButton);
+  }
+  if(typeof loadFieldByFilters==="function")loadFieldByFilters();
+
+  alert(
+   "Assignment loaded for "+(row.crew_name||crew_code)+
+   ".\n"+count+" signs are in this assignment."
+  );
  }catch(error){
   console.error(error);
   alert("Could not load assignment: "+error.message);
  }
 }
-
 async function syncLiveProgress(){
  const a=state.active_assignment;if(!a)return;
  const crew_code=liveCrewCode(a.crew_name);if(!crew_code)return;
