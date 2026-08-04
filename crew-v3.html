@@ -564,7 +564,9 @@ async function v2ReleaseRoute(showMessage=true){
   // Clear the active route locally.
   state.active_assignment=null;
   state.selected=[];
-  selected=new Set();
+  if(typeof selected!=="undefined" && selected && typeof selected.clear==="function"){
+   selected.clear();
+  }
   localStorage.setItem(KEY,JSON.stringify(state));
 
   // Reset filters so the next route starts clean.
