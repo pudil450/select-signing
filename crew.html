@@ -377,23 +377,62 @@ function lastCompletedAssignedSign(){
  return assignedSigns().filter(s=>signState(s.id).completed_at).sort((a,b)=>String(signState(b.id).completed_at).localeCompare(String(signState(a.id).completed_at)))[0]||null;
 }
 function renderCurrentAssignment(){
- const a=state.active_assignment,no=document.getElementById('noAssignmentCard'),home=document.getElementById('currentAssignmentHome');
- if(!a){no.style.display='block';home.style.display='none';return}
- no.style.display='none';home.style.display='block';
- const signs=assignedSigns(),remaining=assignedRemainingSigns(),resolved=signs.length-remaining.length,pct=signs.length?Math.round(resolved/signs.length*100):0;
- document.getElementById('homeCrewName').textContent=a.crew_name||'Assigned Crew';
- document.getElementById('homeRoute').textContent=`${a.route} ${a.direction}`;
- document.getElementById('homePeople').innerHTML=`<b>Lead:</b> ${esc(a.crew_lead||'Not listed')}<br><b>Members:</b> ${esc((a.members||[]).join(', ')||'None listed')}<br><b>Starting at:</b> ${esc(a.start_item_label||'Beginning of route')}`;
- document.getElementById('homeProgressBar').style.width=pct+'%';
- document.getElementById('homeProgressText').textContent=`${resolved} / ${signs.length} signs resolved · ${remaining.length} remaining`;
+ const a=state.active_assignment;
+ const no=document.getElementById('noAssignmentCard');
+ const home=document.getElementById('currentAssignmentHome');
+
+ if(!a){
+  if(no)no.style.display='block';
+  if(home)home.style.display='none';
+  return;
+ }
+
+ if(no)no.style.display='none';
+ if(home)home.style.display='block';
+
+ const signs=assignedSigns();
+ const remaining=assignedRemainingSigns();
+ const resolved=signs.length-remaining.length;
+ const pct=signs.length?Math.round(resolved/signs.length*100):0;
+
+ const crewName=document.getElementById('homeCrewName');
+ if(crewName)crewName.textContent=a.crew_name||'Assigned Crew';
+
+ const route=document.getElementById('homeRoute');
+ if(route)route.textContent=`${a.route||''} ${a.direction||''}`.trim();
+
+ const people=document.getElementById('homePeople');
+ if(people)people.innerHTML=`<b>Lead:</b> ${esc(a.crew_lead||'Not listed')}<br><b>Members:</b> ${esc((a.members||[]).join(', ')||'None listed')}<br><b>Starting at:</b> ${esc(a.start_item_label||'Beginning of route')}`;
+
+ const progressBar=document.getElementById('homeProgressBar');
+ if(progressBar)progressBar.style.width=pct+'%';
+
+ const progressText=document.getElementById('homeProgressText');
+ if(progressText)progressText.textContent=`${resolved} / ${signs.length} signs resolved · ${remaining.length} remaining`;
+
  const last=lastCompletedAssignedSign();
- document.getElementById('homeLastCompleted').innerHTML=last?`<b>Last installed:</b> Sign ${esc(last.sign_no)} · MP ${last.milepost??''}`:'<b>Last installed:</b> None yet';
+ const lastCompleted=document.getElementById('homeLastCompleted');
+ if(lastCompleted)lastCompleted.innerHTML=last?`<b>Last installed:</b> Sign ${esc(last.sign_no)} · MP ${last.milepost??''}`:'<b>Last installed:</b> None yet';
+
  const m=remainingMaterialSummary();
- document.getElementById('homeRemainingLoad').innerHTML=`<ul>${Object.entries(m.anchors).map(([k,v])=>`<li><b>${v}</b> ${esc(k)} anchors</li>`).join('')||'<li>No remaining anchors</li>'}${Object.entries(m.posts).sort((a,b)=>Number(a[0])-Number(b[0])).map(([k,v])=>`<li><b>${v}</b> × ${esc(k)} ft posts</li>`).join('')||'<li>No remaining posts</li>'}</ul>`;
+ const remainingLoad=document.getElementById('homeRemainingLoad');
+ if(remainingLoad)remainingLoad.innerHTML=`<ul>${Object.entries(m.anchors).map(([k,v])=>`<li><b>${v}</b> ${esc(k)} anchors</li>`).join('')||'<li>No remaining anchors</li>'}${Object.entries(m.posts).sort((a,b)=>Number(a[0])-Number(b[0])).map(([k,v])=>`<li><b>${v}</b> × ${esc(k)} ft posts</li>`).join('')||'<li>No remaining posts</li>'}</ul>`;
+
  const complete=remaining.length===0&&signs.length>0;
- document.getElementById('routeCompleteCard').style.display=complete?'block':'none';
- if(complete)document.getElementById('routeCompleteText').textContent=`${a.route} ${a.direction}: ${signs.length} of ${signs.length} signs resolved.`;
- showAssignmentBanner(a);
+ const completeCard=document.getElementById('routeCompleteCard');
+ if(completeCard)completeCard.style.display=complete?'block':'none';
+
+ const completeText=document.getElementById('routeCompleteText');
+ if(complete&&completeText)completeText.textContent=`${a.route||''} ${a.direction||''}: ${signs.length} of ${signs.length} signs resolved.`;
+
+ if(typeof showAssignmentBanner==='function')showAssignmentBanner(a);
+
+ // Older crew layouts do not have the optional assignment-home cards.
+ // In that case, load the field route immediately so the assignment is usable.
+ if(!home){
+  applyAssignmentFilters();
+  if(typeof loadFieldByFilters==='function')loadFieldByFilters();
+ }
 }
 function continueAssignment(){
  const a=state.active_assignment;if(!a){alert('Load an assignment first.');return}
