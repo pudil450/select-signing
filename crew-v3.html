@@ -1059,12 +1059,57 @@ function routeIsNoPassing(sign){
  const description=String(sign?.description||"").toUpperCase();
  return description.includes("NO PASSING")||code.startsWith("W14-3")||code.startsWith("R4-");
 }
-function routeInstallDirection(sign){
- // User-confirmed rule: no-passing sign face direction is installation travel direction.
- if(routeIsNoPassing(sign)){
-  return routeFaceDirection(sign)||overrideRoadwaySide(sign)||canonicalDirections(sign.route)[0];
+
+const PLAN_SIGN_INDEX=Object.fromEntries(PROJECT.signs.map((sign,index)=>[sign.id,index]));
+
+const ROUTE_NUMBER_BLOCKS={
+ "IA-1":[1,498,"Northbound","Southbound"],
+ "US-6":[925,1731,"Eastbound","Westbound"],
+ "US-30":[2319,2527,"Eastbound","Westbound"],
+ "I-80":[2767,3196,"Eastbound","Westbound"],
+ "IA-149":[3613,3813,"Northbound","Southbound"],
+ "US-151":[3997,4091,"Northbound","Southbound"],
+ "IA-212":[4177,4282,"Eastbound","Westbound"],
+ "US-218":[4377,4646,"Northbound","Southbound"],
+ "I-380":[4842,4903,"Northbound","Southbound"],
+ "IA-965":[4952,4983,"Northbound","Southbound"]
+};
+
+function planBlockDirection(sign){
+ const rule=ROUTE_NUMBER_BLOCKS[sign?.route];
+ const number=Number(sign?.sign_no);
+ if(!rule||!Number.isFinite(number))return"";
+ return number<=rule[1]?rule[2]:rule[3];
+}
+
+function faceDirectionForRoute(sign){
+ const raw=String(sign?.direction||"").trim().toUpperCase();
+ const route=String(sign?.route||"");
+ const northSouth=["IA-1","IA-149","US-151","US-218","I-380","IA-965","IA-21"].includes(route);
+
+ // Diagonal faces use the component that matches the roadway orientation.
+ if(northSouth){
+  if(raw.includes("N"))return"Northbound";
+  if(raw.includes("S"))return"Southbound";
+ }else{
+  if(raw.includes("E"))return"Eastbound";
+  if(raw.includes("W"))return"Westbound";
  }
- return overrideRoadwaySide(sign)||alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
+ return routeFaceDirection(sign);
+}
+
+function planSequence(sign){
+ return PLAN_SIGN_INDEX[sign?.id]??999999;
+}
+
+function routeInstallDirection(sign){
+ // User-confirmed special rule: No Passing uses face direction when supplied.
+ if(routeIsNoPassing(sign)){
+  return faceDirectionForRoute(sign)||planBlockDirection(sign)||overrideRoadwaySide(sign)||canonicalDirections(sign.route)[0];
+ }
+
+ // The plan's route number block is authoritative for main roadway side.
+ return planBlockDirection(sign)||overrideRoadwaySide(sign)||alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
 }
 
 function signPlanDirection(sign){
@@ -1113,11 +1158,15 @@ function stopTravelCompare(a,b){
   const order={N:1,S:2,E:3,W:4,"":9};
   return (order[ad]||9)-(order[bd]||9);
  }
+
+ // Preserve the original imported plan-sheet sequence.
+ const aOrder=Math.min(...routeStopSigns(a).map(planSequence));
+ const bOrder=Math.min(...routeStopSigns(b).map(planSequence));
+ if(aOrder!==bOrder)return aOrder-bOrder;
+
+ // GPS/milepost is only a tie-breaker for signs occupying the same plan position.
  const am=Number(a.milepost??999999),bm=Number(b.milepost??999999);
- if(am!==bm)return travelAscending(ad)?am-bm:bm-am;
- const an=Math.min(...routeStopSigns(a).map(s=>Number(s.sign_no)||999999));
- const bn=Math.min(...routeStopSigns(b).map(s=>Number(s.sign_no)||999999));
- return an-bn;
+ return travelAscending(ad)?am-bm:bm-am;
 }
 
 function showTab(id,btn){if(!btn)return;document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='planner')renderPlanner();if(id==='dashboard')renderCurrentAssignment();if(id==='field')loadFieldByFilters();if(id==='requests'){document.getElementById('requestSignItem').value=currentFieldSignItem();renderCrewRequestHistory();}if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
@@ -1507,7 +1556,7 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  v2InstallCrewHeader();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
- if(status)status.textContent=count?`Route order fix active · milepost travel order · ${count} audited signs`:"Route order fallback active";
+ if(status)status.textContent=count?`Plan-order routing active · roadway-side blocks · ${count} audited signs`:"Plan-order routing fallback active";
  initFilters();applyAssignmentFilters();renderDashboard();renderCurrentAssignment();renderCrewRequestHistory();
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
