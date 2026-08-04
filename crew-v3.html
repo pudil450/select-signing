@@ -1049,11 +1049,26 @@ function buildPlanDirectionMap(){
 }
 const PLAN_DIRECTION=buildPlanDirectionMap();
 function locPlanDirection(loc){return locationOverrideSide(loc)||PLAN_DIRECTION[loc.id]||canonicalDirections(loc.route)[0]}
+
+function routeFaceDirection(sign){
+ const c=directionCode(sign?.direction);
+ return {N:"Northbound",S:"Southbound",E:"Eastbound",W:"Westbound"}[c]||"";
+}
+function routeIsNoPassing(sign){
+ const code=String(sign?.mutcd||"").toUpperCase();
+ const description=String(sign?.description||"").toUpperCase();
+ return description.includes("NO PASSING")||code.startsWith("W14-3")||code.startsWith("R4-");
+}
+function routeInstallDirection(sign){
+ // User-confirmed rule: no-passing sign face direction is installation travel direction.
+ if(routeIsNoPassing(sign)){
+  return routeFaceDirection(sign)||overrideRoadwaySide(sign)||canonicalDirections(sign.route)[0];
+ }
+ return overrideRoadwaySide(sign)||alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
+}
+
 function signPlanDirection(sign){
- const override=overrideRoadwaySide(sign);
- if(override)return override;
- const loc=PROJECT.locations.find(l=>l.id===sign.location_id);
- return loc?locPlanDirection(loc):alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
+ return routeInstallDirection(sign);
 }
 
 function routeStopSigns(stop){
@@ -1095,13 +1110,14 @@ function stopRouteOrder(stop){
 function stopTravelCompare(a,b){
  const ad=directionCode(stopPlanDirection(a)),bd=directionCode(stopPlanDirection(b));
  if(ad!==bd){
-  const order={E:1,W:2,N:3,S:4,'':5};
+  const order={N:1,S:2,E:3,W:4,"":9};
   return (order[ad]||9)-(order[bd]||9);
  }
- const ao=stopRouteOrder(a),bo=stopRouteOrder(b);
- if(ao!==null&&bo!==null&&ao!==bo)return ao-bo;
- const am=a.milepost??999999,bm=b.milepost??999999;
- return travelAscending(ad)?am-bm:bm-am;
+ const am=Number(a.milepost??999999),bm=Number(b.milepost??999999);
+ if(am!==bm)return travelAscending(ad)?am-bm:bm-am;
+ const an=Math.min(...routeStopSigns(a).map(s=>Number(s.sign_no)||999999));
+ const bn=Math.min(...routeStopSigns(b).map(s=>Number(s.sign_no)||999999));
+ return an-bn;
 }
 
 function showTab(id,btn){if(!btn)return;document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='planner')renderPlanner();if(id==='dashboard')renderCurrentAssignment();if(id==='field')loadFieldByFilters();if(id==='requests'){document.getElementById('requestSignItem').value=currentFieldSignItem();renderCrewRequestHistory();}if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
@@ -1491,7 +1507,7 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  v2InstallCrewHeader();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
- if(status)status.textContent=count?`Roadway-side audit active · ${count} signs loaded`:"Roadway-side audit unavailable · fallback routing active";
+ if(status)status.textContent=count?`Route order fix active · milepost travel order · ${count} audited signs`:"Route order fallback active";
  initFilters();applyAssignmentFilters();renderDashboard();renderCurrentAssignment();renderCrewRequestHistory();
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
