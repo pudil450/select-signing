@@ -70,7 +70,7 @@ table{width:100%;border-collapse:collapse;background:white} th,td{padding:8px;bo
 </head>
 <body>
 <header>
-<div><h1>Select Signing Project Manager — Office Route Assignments</h1><small id="projectTitle"></small></div>
+<div><h1>Select Signing Project Manager — Office Route Assignments</h1><small id="projectTitle"></small><div id="routeAuditStatus" style="font-size:12px;margin-top:5px;opacity:.9">Roadway-side audit: loading…</div></div>
 <div><label style="margin-right:8px">Crew <input id="crewName" placeholder="Assigned crew" style="width:130px" onchange="setCrew(this.value)"></label><button onclick="document.getElementById('assignmentInput').click()">Load Assignment</button><input id="assignmentInput" class="hidden" type="file" accept=".json" onchange="importAssignment(event)"><button onclick="exportBackup()">Export Backup</button> <button onclick="document.getElementById('backupInput').click()">Import Backup</button><input id="backupInput" class="hidden" type="file" accept=".json" onchange="importBackup(event)"></div>
 </header>
 <nav>
@@ -254,6 +254,53 @@ const LIVE_HEADERS={
  "Authorization":"Bearer "+LIVE_SUPABASE_KEY,
  "Content-Type":"application/json"
 };
+
+let LIVE_ROUTE_OVERRIDES={};
+let LIVE_ROUTE_OVERRIDES_READY=false;
+
+async function loadRouteOverrides(){
+ try{
+  const response=await fetch(
+   LIVE_SUPABASE_URL+
+   "/rest/v1/sign_route_overrides"+
+   "?select=sign_id,roadway_side,route_order,route",
+   {headers:LIVE_HEADERS}
+  );
+  if(!response.ok)throw new Error(await response.text());
+  const rows=await response.json();
+  LIVE_ROUTE_OVERRIDES={};
+  for(const row of rows)LIVE_ROUTE_OVERRIDES[row.sign_id]=row;
+  LIVE_ROUTE_OVERRIDES_READY=true;
+  return rows.length;
+ }catch(error){
+  console.error("Route overrides unavailable; using embedded fallback routing.",error);
+  LIVE_ROUTE_OVERRIDES_READY=false;
+  return 0;
+ }
+}
+
+function signRouteOverride(sign){
+ return LIVE_ROUTE_OVERRIDES[sign?.id]||null;
+}
+function overrideRoadwaySide(sign){
+ const row=signRouteOverride(sign);
+ return row&&row.roadway_side!=="Manual review"?row.roadway_side:"";
+}
+function overrideRouteOrder(sign){
+ const row=signRouteOverride(sign);
+ return row&&Number.isFinite(Number(row.route_order))?Number(row.route_order):null;
+}
+function locationOverrideSide(loc){
+ const sides=locSigns(loc).map(overrideRoadwaySide).filter(Boolean);
+ if(!sides.length)return "";
+ const counts={};for(const side of sides)counts[side]=(counts[side]||0)+1;
+ return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+}
+function locationOverrideOrder(loc){
+ const orders=locSigns(loc).map(overrideRouteOrder).filter(x=>x!==null);
+ return orders.length?Math.min(...orders):null;
+}
+
 function liveCrewCode(value){
  return String(value||"").trim().toLowerCase()
   .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
@@ -359,6 +406,9 @@ function travelCompare(a,b,directionGetter){
   const order={E:1,W:2,N:3,S:4,'':5};
   return (order[ad]||9)-(order[bd]||9);
  }
+ const ao=a.sign_no!==undefined?overrideRouteOrder(a):locationOverrideOrder(a);
+ const bo=b.sign_no!==undefined?overrideRouteOrder(b):locationOverrideOrder(b);
+ if(ao!==null&&bo!==null&&ao!==bo)return ao-bo;
  const am=a.milepost??999999,bm=b.milepost??999999;
  return travelAscending(ad)?am-bm:bm-am;
 }
@@ -408,8 +458,10 @@ function buildPlanDirectionMap(){
  return result;
 }
 const PLAN_DIRECTION=buildPlanDirectionMap();
-function locPlanDirection(loc){return PLAN_DIRECTION[loc.id]||canonicalDirections(loc.route)[0]}
+function locPlanDirection(loc){return locationOverrideSide(loc)||PLAN_DIRECTION[loc.id]||canonicalDirections(loc.route)[0]}
 function signPlanDirection(sign){
+ const override=overrideRoadwaySide(sign);
+ if(override)return override;
  const loc=PROJECT.locations.find(l=>l.id===sign.location_id);
  return loc?locPlanDirection(loc):alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
 }
@@ -977,7 +1029,7 @@ function palletFilteredSigns(){
     &&anchorMatch
     &&(status==='all'||!st.completed);
  });
- rows.sort((a,b)=>travelCompare(a,b,s=>s.traffic_direction));
+ rows.sort((a,b)=>travelCompare(a,b,signPlanDirection));
  // Reverse field order for pallet loading: first loaded comes off last.
  return rows.reverse();
 }
@@ -1048,6 +1100,12 @@ const originalRenderDashboard=renderDashboard;
 renderDashboard=function(){originalRenderDashboard();renderCrewAssignmentDashboard();};
 
 document.getElementById('projectTitle').textContent=PROJECT.project_name+' · v2.0 Crew Test';document.getElementById('crewName').value=state.crew||'';document.getElementById('timelineDate').value=new Date().toISOString().slice(0,10);
-initFilters();refreshSavedCrewControls();renderCrewRequests();initAssignmentControls();renderDashboard();refreshLiveProgress(true);setInterval(()=>refreshLiveProgress(true),30000);
+(async()=>{
+ const count=await loadRouteOverrides();
+ const status=document.getElementById("routeAuditStatus");
+ if(status)status.textContent=count?`Roadway-side audit active · ${count} signs loaded`:"Roadway-side audit unavailable · fallback routing active";
+ initFilters();refreshSavedCrewControls();renderCrewRequests();initAssignmentControls();renderDashboard();
+ refreshLiveProgress(true);setInterval(()=>refreshLiveProgress(true),30000);
+})();
 </script>
 </body></html>
