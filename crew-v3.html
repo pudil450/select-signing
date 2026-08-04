@@ -463,7 +463,14 @@ function v2OpenRouteChooser(){
      <option value="Slip-Base">Slip-base anchors only</option>
     </select>
    </label>
-   <label>Start at sign<select id="v2StartSign"></select></label>
+   <label>Start mode
+    <select id="v2StartMode" onchange="v2FillStartSigns()">
+     <option value="beginning">Beginning of route</option>
+     <option value="resume">Resume first unresolved</option>
+     <option value="specific">Choose specific sign</option>
+    </select>
+   </label>
+   <label id="v2StartSignLabel">Start at sign<select id="v2StartSign"></select></label>
    <div id="v2ClaimStatus" class="note"></div>
    <button class="primary" id="v2StartWorkingBtn" onclick="v2ClaimRoute()">Start Working</button>
    <button onclick="document.getElementById('v2RouteModal').style.display='none'">Cancel</button>
@@ -474,6 +481,7 @@ function v2OpenRouteChooser(){
  }
  const routes=[...new Set(PROJECT.signs.map(s=>s.route))].sort();
  document.getElementById("v2Route").innerHTML=routes.map(r=>`<option>${esc(r)}</option>`).join("");
+ const startMode=document.getElementById("v2StartMode");if(startMode)startMode.value="beginning";
  v2FillDirections();modal.style.display="flex";v2RefreshClaims();
 }
 
@@ -486,11 +494,38 @@ function v2FillDirections(){
 function v2FillStartSigns(){
  const route=document.getElementById("v2Route").value;
  const dir=document.getElementById("v2Direction").value;
- const signs=PROJECT.signs.filter(s=>s.route===route&&signPlanDirection(s)===dir)
-  .sort((a,b)=>travelCompare(a,b,signPlanDirection));
- document.getElementById("v2StartSign").innerHTML=
-  `<option value="">Beginning / first unresolved</option>`+
-  signs.map(s=>`<option value="${esc(s.id)}">Sign ${esc(s.sign_no)} · MP ${s.milepost??""}</option>`).join("");
+ const mode=document.getElementById("v2StartMode")?.value||"beginning";
+ const label=document.getElementById("v2StartSignLabel");
+ const select=document.getElementById("v2StartSign");
+
+ const signs=PROJECT.signs
+  .filter(s=>s.route===route&&signPlanDirection(s)===dir)
+  .sort((a,b)=>{
+   const ao=PLAN_SIGN_INDEX?.[a.id]??999999;
+   const bo=PLAN_SIGN_INDEX?.[b.id]??999999;
+   return ao-bo;
+  });
+
+ if(mode==="specific"){
+  if(label)label.style.display="block";
+  select.innerHTML=signs.map(s=>`<option value="${esc(s.id)}">Sign ${esc(s.sign_no)} · MP ${s.milepost??""}</option>`).join("");
+  return;
+ }
+
+ if(label)label.style.display="none";
+
+ if(mode==="resume"){
+  const firstUnresolved=signs.find(s=>{
+   const st=signState(s.id);
+   return !(st.completed||st.not_installed);
+  });
+  select.innerHTML=`<option value="${esc(firstUnresolved?.id||signs[0]?.id||"")}">${firstUnresolved?`Resume at Sign ${esc(firstUnresolved.sign_no)}`:"No unresolved signs"}</option>`;
+  return;
+ }
+
+ // Beginning always means the true first sign in plan order.
+ const first=signs[0];
+ select.innerHTML=`<option value="${esc(first?.id||"")}">${first?`Begin at Sign ${esc(first.sign_no)}`:"No signs found"}</option>`;
 }
 async function v2RefreshClaims(){
  if(!V2_SESSION)return;
