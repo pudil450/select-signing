@@ -1038,6 +1038,54 @@ function signPlanDirection(sign){
  return loc?locPlanDirection(loc):alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
 }
 
+function routeStopSigns(stop){
+ if(stop&&Array.isArray(stop._route_sign_ids)){
+  return stop._route_sign_ids.map(id=>PROJECT.signs.find(s=>s.id===id)).filter(Boolean);
+ }
+ return locSigns(stop);
+}
+function buildRoadwaySideStops(){
+ const stops=[];
+ for(const loc of PROJECT.locations){
+  const grouped={};
+  for(const sign of locSigns(loc)){
+   const side=signPlanDirection(sign)||"Manual review";
+   (grouped[side]||(grouped[side]=[])).push(sign);
+  }
+  for(const [side,signs] of Object.entries(grouped)){
+   if(side==="Manual review")continue;
+   const orderValues=signs.map(overrideRouteOrder).filter(v=>v!==null);
+   stops.push({
+    ...loc,
+    id:loc.id+"__"+side,
+    _source_location_id:loc.id,
+    _roadway_side:side,
+    _route_sign_ids:signs.map(s=>s.id),
+    _route_order:orderValues.length?Math.min(...orderValues):null,
+    label:signs.map(s=>s.sign_no).join(" / ")
+   });
+  }
+ }
+ return stops;
+}
+const ROADWAY_SIDE_STOPS=buildRoadwaySideStops();
+function stopPlanDirection(stop){return stop._roadway_side||locPlanDirection(stop)}
+function stopRouteOrder(stop){
+ if(stop&&stop._route_order!==undefined&&stop._route_order!==null)return Number(stop._route_order);
+ return locationOverrideOrder(stop);
+}
+function stopTravelCompare(a,b){
+ const ad=directionCode(stopPlanDirection(a)),bd=directionCode(stopPlanDirection(b));
+ if(ad!==bd){
+  const order={E:1,W:2,N:3,S:4,'':5};
+  return (order[ad]||9)-(order[bd]||9);
+ }
+ const ao=stopRouteOrder(a),bo=stopRouteOrder(b);
+ if(ao!==null&&bo!==null&&ao!==bo)return ao-bo;
+ const am=a.milepost??999999,bm=b.milepost??999999;
+ return travelAscending(ad)?am-bm:bm-am;
+}
+
 function showTab(id,btn){if(!btn)return;document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='planner')renderPlanner();if(id==='dashboard')renderCurrentAssignment();if(id==='field')loadFieldByFilters();if(id==='requests'){document.getElementById('requestSignItem').value=currentFieldSignItem();renderCrewRequestHistory();}if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
 function renderDashboard(){
  const total=PROJECT.signs.length;
@@ -1124,7 +1172,7 @@ function renderPlanner(){
  return s.post_configuration==='Single post'?`L ${l} ft · Single post`:(l!==''||r!==''?`L ${l} ft / R ${r} ft`:'');
 }).filter(Boolean))].join(' / '))}</td>
 <td>${esc([...new Set(ss.map(s=>s.installation_dimension).filter(x=>x!==null&&x!==undefined&&x!==''))].join(' / '))}</td>
-<td>${done?'Complete':partial?'Partial':'Incomplete'}</td><td>${esc(ss.map(s=>s.description).filter(Boolean).join(' / '))}</td><td><a target="_blank" href="${drive}" onclick="startDrive('${l.id}')">Drive here</a></td>`;
+<td>${done?'Complete':partial?'Partial':'Incomplete'}</td><td>${esc(ss.map(s=>s.description).filter(Boolean).join(' / '))}</td><td><a target="_blank" href="${drive}" onclick="startDrive('${l._source_location_id||l.id}')">Drive here</a></td>`;
   body.appendChild(tr);
  }
  document.getElementById('plannerSummary').textContent=`${list.length} locations shown · ${selected.size} selected`;
@@ -1145,36 +1193,40 @@ function fieldFilteredLocations(){
  const a=document.getElementById('fieldAnchorFilter').value;
  const st=document.getElementById('fieldStatusFilter').value;
  const q=document.getElementById('fieldSearchFilter').value.toLowerCase();
- let list=PROJECT.locations.filter(l=>{
-  const ss=locSigns(l), text=(l.label+' '+ss.map(s=>s.description+' '+s.remarks).join(' ')).toLowerCase();
+ let list=ROADWAY_SIDE_STOPS.filter(l=>{
+  const ss=routeStopSigns(l);
+  const text=(l.label+' '+ss.map(s=>s.description+' '+s.remarks).join(' ')).toLowerCase();
   const attention=ss.some(s=>{const x=signState(s.id);return x.return_trip||x.reason||x.notes});
-  return (!state.active_assignment||(l.route===state.active_assignment.route&&locPlanDirection(l)===state.active_assignment.direction))
+  const complete=ss.length>0&&ss.every(s=>signState(s.id).completed||signState(s.id).not_installed);
+  const anchorTypes=ss.map(s=>s.anchor_type);
+  const anchor=anchorTypes.includes('Soil')?'Soil':anchorTypes.includes('Slip-Base')?'Slip-Base':'None';
+  return (!state.active_assignment||(l.route===state.active_assignment.route&&stopPlanDirection(l)===state.active_assignment.direction))
    &&(r==='all'||l.route===r)
-   &&(d==='all'||locPlanDirection(l)===d)
-   &&(a==='all'||(a==='anchors'?locAnchor(l)!=='None':a==='none'?locAnchor(l)==='None':locAnchor(l)===a))
-   &&(st==='all'||(st==='complete'?locComplete(l):st==='attention'?attention:!locComplete(l)))
+   &&(d==='all'||stopPlanDirection(l)===d)
+   &&(a==='all'||(a==='anchors'?anchor!=='None':a==='none'?anchor==='None':anchor===a))
+   &&(st==='all'||(st==='complete'?complete:st==='attention'?attention:!complete))
    &&(!q||text.includes(q));
  });
- list.sort((x,y)=>travelCompare(x,y,locPlanDirection));
+ list.sort(stopTravelCompare);
  return list;
 }
 function fieldColorClass(l){
- const ss=locSigns(l);
+ const ss=routeStopSigns(l);
  const attention=ss.some(s=>{const x=signState(s.id);return x.return_trip||x.reason||x.notes});
- if(locComplete(l)) return 'stop-complete';
- if(locAnchor(l)==='Soil') return 'stop-soil';
- if(locAnchor(l)==='Slip-Base') return 'stop-slip';
+ if(ss.length&&ss.every(s=>signState(s.id).completed)) return 'stop-complete';
+ if(ss.some(s=>s.anchor_type==='Soil')) return 'stop-soil';
+ if(ss.some(s=>s.anchor_type==='Slip-Base')) return 'stop-slip';
  if(attention) return 'stop-attention';
  return 'stop-incomplete';
 }
 function renderFieldLocations(list){
  currentFieldLocations=list;
  const out=document.getElementById('fieldStops');
- document.getElementById('fieldSummary').textContent=`${list.length} locations loaded · ${list.reduce((n,l)=>n+l.sign_ids.length,0)} signs`;
- const activeIndex=list.findIndex(l=>!locResolved(l));
+ document.getElementById('fieldSummary').textContent=`${list.length} roadway-side stops loaded · ${list.reduce((n,l)=>n+routeStopSigns(l).length,0)} signs`;
+ const activeIndex=list.findIndex(l=>!routeStopSigns(l).every(s=>signState(s.id).completed||signState(s.id).not_installed));
  const first=activeIndex>=0?list[activeIndex]:null;
  document.getElementById('firstStopCard').innerHTML=first
-  ?`<h3 style="margin-top:0">Current stop</h3><b>${esc(first.route)} MP ${first.milepost??''}</b><br>${esc(first.label)}<br><a class="route-link" target="_blank" onclick="startDrive('${first.id}')" href="https://www.google.com/maps/dir/?api=1&destination=${first.latitude},${first.longitude}&travelmode=driving">Drive to current stop</a>`
+  ?`<h3 style="margin-top:0">Current stop</h3><b>${esc(first.route)} MP ${first.milepost??''}</b><br>${esc(first.label)}<br><a class="route-link" target="_blank" onclick="startDrive('${first._source_location_id||first.id}')" href="https://www.google.com/maps/dir/?api=1&destination=${first.latitude},${first.longitude}&travelmode=driving">Drive to current stop</a>`
   :'<b>Every loaded stop has been resolved.</b>';
  out.innerHTML=list.map((l,idx)=>{
   const locked=activeIndex>=0&&idx>activeIndex;
@@ -1186,7 +1238,9 @@ function renderFieldLocations(list){
     <div class="locked-message">Resolve every sign at the current stop before opening this stop.</div>
     ${signs.map(s=>`<div class="sign-row"><b>Sign ${esc(s.sign_no)}</b> · ${esc(s.description)}${s.sign_size?` · ${esc(s.sign_size)}`:''}</div>`).join('')}</div>`;
   }
-  const resolvedClass=locResolved(l)&&!locComplete(l)?' resolved-not-installed':'';
+  const stopResolved=signs.every(s=>signState(s.id).completed||signState(s.id).not_installed);
+  const stopComplete=signs.every(s=>signState(s.id).completed);
+  const resolvedClass=stopResolved&&!stopComplete?' resolved-not-installed':'';
   return `<div class="stop-card ${fieldColorClass(l)}${resolvedClass}"><h3>Stop ${idx+1} — ${esc(l.route)} MP ${l.milepost??''}</h3>
    <p><b>${esc(l.label)}</b></p>
    ${idx===activeIndex?`<a class="route-link" target="_blank" href="${drive}" onclick="startDrive('${l.id}')">Drive here</a>`:''}
@@ -1196,7 +1250,7 @@ function renderFieldLocations(list){
 function loadFieldByFilters(){renderFieldLocations(fieldFilteredLocations())}
 function loadSelectedFieldStops(){renderFieldLocations(PROJECT.locations.filter(l=>selected.has(l.id)))}
 function buildFieldRoutes(){
- const list=currentFieldLocations.filter(l=>!locResolved(l));
+ const list=currentFieldLocations.filter(l=>!routeStopSigns(l).every(s=>signState(s.id).completed||signState(s.id).not_installed));
  const out=document.getElementById('fieldRouteLinks');out.innerHTML='';
  if(!list.length){out.textContent='No incomplete field locations are loaded.';return}
  const size=8;let last=null;
