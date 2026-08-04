@@ -334,6 +334,9 @@ function v3ApplyCurrentRouteToLoadScreens(){
  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value};
  set("palletRouteFilter",a.route);set("palletDirectionFilter",a.direction);
  set("materialsRouteFilter",a.route);set("materialsDirectionFilter",a.direction);
+ set("fieldAnchorFilter",a.work_filter||"all");
+ const palletWork=(a.work_filter==="Soil"||a.work_filter==="Slip-Base"||a.work_filter==="anchors"||a.work_filter==="none")?a.work_filter:"all";
+ set("palletAnchorFilter",palletWork);
 }
 function v3OpenPalletLoading(){
  if(!state.active_assignment){alert("Start a route first.");return}
@@ -367,7 +370,8 @@ function v3UpdateRouteDashboard(){
  }
  box.classList.remove("no-route");
  title.textContent=`${a.route} ${a.direction}`;
- meta.textContent=`${V2_PROFILE?.full_name||a.crew_name} · Starting at ${a.start_item_label||"Beginning"}`;
+ const workLabels={all:"All signs",anchors:"All anchors",none:"No anchors",Soil:"Soil anchors only","Slip-Base":"Slip-base anchors only"};
+ meta.textContent=`${V2_PROFILE?.full_name||a.crew_name} · ${workLabels[a.work_filter||"all"]||a.work_filter} · Starting at ${a.start_item_label||"Beginning"}`;
 }
 
 
@@ -450,6 +454,15 @@ function v2OpenRouteChooser(){
   modal.innerHTML=`<div class="v2-modal-card"><h2>Choose your route</h2>
    <label>Route<select id="v2Route"></select></label>
    <label>Roadway side<select id="v2Direction"></select></label>
+   <label>Work type
+    <select id="v2WorkType">
+     <option value="all">All signs</option>
+     <option value="anchors">All anchors</option>
+     <option value="none">No anchors</option>
+     <option value="Soil">Soil anchors only</option>
+     <option value="Slip-Base">Slip-base anchors only</option>
+    </select>
+   </label>
    <label>Start at sign<select id="v2StartSign"></select></label>
    <div id="v2ClaimStatus" class="note"></div>
    <button class="primary" id="v2StartWorkingBtn" onclick="v2ClaimRoute()">Start Working</button>
@@ -485,7 +498,7 @@ async function v2RefreshClaims(){
  if(!r.ok)return;
  const rows=await r.json();
  const status=document.getElementById("v2ClaimStatus");
- if(status)status.innerHTML=rows.length?"Currently active: "+rows.map(x=>`${esc(x.user_name)} — ${esc(x.route)} ${esc(x.direction)}`).join("<br>"):"No active route claims.";
+ if(status)status.innerHTML=rows.length?"Currently active: "+rows.map(x=>`${esc(x.user_name)} — ${esc(x.route)} ${esc(x.direction)} · ${esc(x.work_filter||"all")}`).join("<br>"):"No active route claims.";
  const board=document.getElementById("v2RouteBoard");
  if(board)board.innerHTML=rows.length?rows.map(x=>`<div class="list-row"><div><b>${esc(x.user_name)}</b><small>${esc(x.route)} ${esc(x.direction)} · Start ${esc(x.start_sign_no||"beginning")}</small></div><span class="pill">Active</span></div>`).join(""):"<p>No active users.</p>";
 }
@@ -493,13 +506,14 @@ async function v2ClaimRoute(){
  const button=document.getElementById("v2StartWorkingBtn");
  const route=document.getElementById("v2Route").value;
  const direction=document.getElementById("v2Direction").value;
+ const work_filter=document.getElementById("v2WorkType").value;
  const startId=document.getElementById("v2StartSign").value||null;
  const sign=PROJECT.signs.find(s=>s.id===startId);
  if(button){button.disabled=true;button.textContent="Starting…"}
  try{
   await v2ReleaseRoute(false);
   const claim={
-   user_id:V2_SESSION.user.id,user_name:V2_PROFILE.full_name,route,direction,
+   user_id:V2_SESSION.user.id,user_name:V2_PROFILE.full_name,route,direction,work_filter,
    start_sign_no:sign?.sign_no||null,start_sign_id:startId,
    current_sign_no:sign?.sign_no||null,status:"active"
   };
@@ -510,9 +524,11 @@ async function v2ClaimRoute(){
   if(!response.ok)throw new Error(await response.text());
   applyAssignment({
    id:"self-"+Date.now(),crew_name:V2_PROFILE.full_name,crew_lead:V2_PROFILE.full_name,
-   members:[V2_PROFILE.full_name],route,direction,start_item_id:startId,
+   members:[V2_PROFILE.full_name],route,direction,work_filter,start_item_id:startId,
    start_item_label:sign?`Sign ${sign.sign_no}`:"Beginning"
   });
+  const fieldAnchor=document.getElementById("fieldAnchorFilter");
+  if(fieldAnchor)fieldAnchor.value=work_filter;
   const modal=document.getElementById("v2RouteModal");if(modal)modal.style.display="none";
   v3ApplyCurrentRouteToLoadScreens();
   v3UpdateRouteDashboard();
@@ -540,7 +556,7 @@ async function v2LoadMyClaim(){
  const rows=await r.json();if(!rows.length)return;
  const c=rows[0];
  const sign=PROJECT.signs.find(s=>s.id===c.start_sign_id);
- applyAssignment({id:c.id,crew_name:c.user_name,crew_lead:c.user_name,members:[c.user_name],route:c.route,direction:c.direction,start_item_id:c.start_sign_id,start_item_label:sign?`Sign ${sign.sign_no}`:"Beginning"});v3ApplyCurrentRouteToLoadScreens();v3UpdateRouteDashboard();
+ applyAssignment({id:c.id,crew_name:c.user_name,crew_lead:c.user_name,members:[c.user_name],route:c.route,direction:c.direction,work_filter:c.work_filter||"all",start_item_id:c.start_sign_id,start_item_label:sign?`Sign ${sign.sign_no}`:"Beginning"});v3ApplyCurrentRouteToLoadScreens();v3UpdateRouteDashboard();
 }
 
 
