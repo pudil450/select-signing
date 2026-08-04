@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Select Signing — Office</title>
+<title>Select Signing — Crew</title>
 <style>
 :root{--nav:#171717;--accent:#f97316;--ok:#188038;--warn:#f59e0b;--bad:#b3261e;--bg:#f3f4f6}
 *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#222}
@@ -75,71 +75,45 @@ nav button.active{background:#f97316;color:#111;font-weight:800}
 </head>
 <body>
 <header>
-<div><h1>Select Signing Project Manager — Office Route Assignments</h1><small id="projectTitle"></small></div>
+<div><h1>Select Signing — Crew App</h1><small id="projectTitle"></small></div>
 <div><label style="margin-right:8px">Crew <input id="crewName" placeholder="Assigned crew" style="width:130px" onchange="setCrew(this.value)"></label><button onclick="document.getElementById('assignmentInput').click()">Load Assignment</button><input id="assignmentInput" class="hidden" type="file" accept=".json" onchange="importAssignment(event)"><button onclick="exportBackup()">Export Backup</button> <button onclick="document.getElementById('backupInput').click()">Import Backup</button><input id="backupInput" class="hidden" type="file" accept=".json" onchange="importBackup(event)"></div>
 </header>
 <nav>
-<button class="active" onclick="showTab('dashboard',this)">Dashboard</button>
-<button onclick="showTab('assignments',this)">Crew Assignments</button>
-<button onclick="showTab('planner',this)">Daily Planner</button>
-<button onclick="showTab('field',this)">Field Preview</button>
-<button onclick="showTab('pallet',this)">Pallet Loading</button>
+<button class="active" onclick="showTab('dashboard',this)">Current Assignment</button>
+<button onclick="showTab('pallet',this)">Load Truck</button>
+<button onclick="showTab('field',this)">Continue Work</button>
 <button onclick="showTab('materials',this)">Posts & Anchors</button>
-<button onclick="showTab('timeline',this)">Timeline</button>
-<button onclick="showTab('signs',this)">All Signs</button>
+<button onclick="showTab('requests',this)">Request Materials</button>
 </nav>
 <main>
 <section id="dashboard" class="active">
-<div class="cards" id="dashboardCards"></div>
-<div class="card" style="margin-top:12px"><h3>Project progress</h3><div class="progress"><div id="progressBar"></div></div><p id="progressText"></p></div>
-<div class="card" style="margin-top:12px"><h3>Route summary</h3><div id="routeSummary"></div></div><div class="card" style="margin-top:12px"><h3>Assigned crews</h3><div id="crewAssignmentDashboard"></div></div>
-</section>
-
-
-<section id="assignments">
-<h2>Crew Management & Route Assignments</h2>
-
-<div class="card">
-<h3>Saved Crews</h3>
-<div class="controls">
-<label>Crew name <input id="savedCrewName" placeholder="Crew 1"></label>
-<label>Crew lead <input id="savedCrewLead" placeholder="Lead name"></label>
-<label>Lead email <input id="savedCrewEmail" type="email" placeholder="lead@company.com"></label>
-<label>Crew members <input id="savedCrewMembers" placeholder="Name 1, Name 2, Name 3" style="min-width:280px"></label>
-<button class="primary" onclick="saveCrewProfile()">Save crew</button>
-<button onclick="clearCrewProfileForm()">Clear</button>
+<div id="noAssignmentCard" class="card">
+<h2>No route assignment loaded</h2>
+<p>Use <b>Load Assignment</b> above to open the route assignment sent by the office.</p>
 </div>
-<p class="note">Save each regular crew once. Saved leads become available in the assignment dropdown.</p>
-<div id="savedCrewList"></div>
+<div id="currentAssignmentHome" style="display:none">
+ <div class="card">
+  <div class="note">CURRENT ASSIGNMENT</div>
+  <h2 id="homeCrewName"></h2>
+  <h1 id="homeRoute"></h1>
+  <p id="homePeople"></p>
+  <div class="progress"><div id="homeProgressBar"></div></div>
+  <h3 id="homeProgressText"></h3>
+  <p id="homeLastCompleted"></p>
+  <button class="primary" style="font-size:1.2rem;padding:14px 24px" onclick="continueAssignment()">CONTINUE WORK</button>
+  <button class="danger" style="font-size:1.05rem;padding:12px 20px" onclick="endWorkDay()">END WORKDAY</button>
+ </div>
+ <div class="card" style="margin-top:12px">
+  <h2>Remaining Load</h2>
+  <p class="note">Calculated from unresolved signs on the assigned route.</p>
+  <div id="homeRemainingLoad"></div>
+  <button onclick="openLoadTruck()">Open Load Truck</button>
+ </div>
+ <div id="routeCompleteCard" class="card" style="display:none;margin-top:12px">
+  <h2>Route Complete</h2><p id="routeCompleteText"></p>
+  <button onclick="exportCSV()">Generate Completion Report</button>
+ </div>
 </div>
-
-<div class="card" style="margin-top:12px">
-<h3>Assign Route</h3>
-<div class="controls">
-<label>Saved crew <select id="assignCrewSelect" onchange="applySavedCrewToAssignment()" style="min-width:190px"></select></label>
-<label>Crew name <input id="assignCrewName" placeholder="Crew 1"></label>
-<label>Crew lead <select id="assignLead" onchange="applyLeadToAssignment()" style="min-width:190px"></select></label>
-<label>Lead email <input id="assignEmail" type="email" placeholder="lead@company.com"></label>
-<label>Crew members <input id="assignMembers" placeholder="Name 1, Name 2, Name 3" style="min-width:260px"></label>
-<label>Office notification email <input id="assignOfficeEmail" type="email" placeholder="office@company.com"></label>
-<label>Route <select id="assignRoute" onchange="refreshAssignmentDirections()"></select></label>
-<label>Plan direction <select id="assignDirection" onchange="refreshAssignmentStartItems()"></select></label>
-<label>Starting sign/item <select id="assignStartItem" style="min-width:300px"></select></label>
-<button class="primary" onclick="saveAssignment()">Assign route</button>
-</div>
-<p class="note">The office email is included in the assignment so crew material requests can send a notification immediately.</p>
-</div>
-
-<div class="card" style="margin-top:12px">
-<h3>Crew Requests <span id="crewRequestBadge" class="badge">0 new</span></h3>
-<div class="controls">
-<label>Import request file <input id="crewRequestFile" type="file" accept=".json,application/json" onchange="importCrewRequestFile(this.files[0])"></label>
-<button onclick="markAllRequestsRead()">Mark all read</button>
-</div>
-<div id="crewRequestList"></div>
-</div>
-
-<div id="assignmentList"></div>
 </section>
 
 <section id="planner">
@@ -247,6 +221,31 @@ nav button.active{background:#f97316;color:#111;font-weight:800}
 <div class="card"><h3>Daily production</h3><p>Export only signs completed today.</p><button onclick="exportTodayCSV()">Export today's CSV</button></div>
 </div>
 </section>
+
+<section id="requests">
+<h2>Request Materials / Send Comment</h2>
+<div class="card">
+<p class="note">Use this for hardware, posts, anchors, sign faces, equipment, or anything the office needs to know.</p>
+<div class="controls">
+<label>Request type
+<select id="requestType">
+<option>Hardware</option><option>Posts</option><option>Anchors</option><option>Sign Face</option><option>Equipment</option><option>Traffic Control</option><option>Other</option>
+</select></label>
+<label>Urgency
+<select id="requestUrgency"><option>Normal</option><option>Needed today</option><option>Work stopped</option></select></label>
+<label>Quantity <input id="requestQuantity" type="number" min="0" placeholder="0"></label>
+<label>Sign/item <input id="requestSignItem" placeholder="Current sign or item number"></label>
+</div>
+<label>Comment<br><textarea id="requestComment" rows="5" style="width:100%" placeholder="Describe exactly what is needed and why."></textarea></label><br>
+<button class="primary" onclick="submitCrewRequest()">Send request to office</button>
+<button onclick="downloadCrewRequests()">Download request log</button>
+</div>
+<div class="card" style="margin-top:12px">
+<h3>Sent Requests</h3>
+<div id="crewRequestHistory"></div>
+</div>
+</section>
+
 </main>
 
 <script>
@@ -259,9 +258,8 @@ state.crew=state.crew||'';
 state.photos=state.photos||{};
 state.workday=state.workday||{};
 state.assignments=state.assignments||[];
-state.saved_crews=state.saved_crews||[];
-state.crew_requests=state.crew_requests||[];
 state.active_assignment=state.active_assignment||null;
+state.crew_requests=state.crew_requests||[];
 
 
 for(const s of PROJECT.signs){
@@ -282,20 +280,143 @@ function assignmentLocations(a){
  return list;
 }
 function applyAssignment(a){
- state.active_assignment=a;
+ state.active_assignment={...a,persistent:true};
  state.crew=a.crew_name||a.crew_lead||'Assigned crew';
  document.getElementById('crewName').value=state.crew;
- const ids=['fieldRouteFilter','palletRouteFilter','materialsRouteFilter'];
- ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value=a.route});
- ['fieldDirectionFilter','palletDirectionFilter','materialsDirectionFilter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=a.direction});
- save();
- showAssignmentBanner(a);
- loadFieldByFilters();
+ save();applyAssignmentFilters();renderCurrentAssignment();
 }
+
+function assignedLocations(){return state.active_assignment?assignmentLocations(state.active_assignment):[]}
+function assignedSigns(){return assignedLocations().flatMap(locSigns)}
+function assignedRemainingSigns(){return assignedSigns().filter(s=>!signResolved(s.id))}
+function firstUnresolvedAssignedLocation(){return assignedLocations().find(l=>!locResolved(l))||null}
+function applyAssignmentFilters(){
+ const a=state.active_assignment;if(!a)return;
+ ['fieldRouteFilter','palletRouteFilter','materialsRouteFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=a.route});
+ ['fieldDirectionFilter','palletDirectionFilter','materialsDirectionFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=a.direction});
+ const fs=document.getElementById('fieldStatusFilter');if(fs)fs.value='all';
+ const ps=document.getElementById('palletStatusFilter');if(ps)ps.value='incomplete';
+ const ms=document.getElementById('materialsStatusFilter');if(ms)ms.value='incomplete';
+}
+function remainingMaterialSummary(){
+ const anchors={},posts={};
+ assignedRemainingSigns().forEach(s=>{
+  if(s.anchor_type&&s.anchor_type!=='None')anchors[s.anchor_type]=(anchors[s.anchor_type]||0)+1;
+  [s.left_post_length,s.right_post_length].forEach(v=>{if(v!==null&&v!==undefined&&v!=='')posts[v]=(posts[v]||0)+1});
+ });
+ return {anchors,posts};
+}
+function lastCompletedAssignedSign(){
+ return assignedSigns().filter(s=>signState(s.id).completed_at).sort((a,b)=>String(signState(b.id).completed_at).localeCompare(String(signState(a.id).completed_at)))[0]||null;
+}
+function renderCurrentAssignment(){
+ const a=state.active_assignment,no=document.getElementById('noAssignmentCard'),home=document.getElementById('currentAssignmentHome');
+ if(!a){no.style.display='block';home.style.display='none';return}
+ no.style.display='none';home.style.display='block';
+ const signs=assignedSigns(),remaining=assignedRemainingSigns(),resolved=signs.length-remaining.length,pct=signs.length?Math.round(resolved/signs.length*100):0;
+ document.getElementById('homeCrewName').textContent=a.crew_name||'Assigned Crew';
+ document.getElementById('homeRoute').textContent=`${a.route} ${a.direction}`;
+ document.getElementById('homePeople').innerHTML=`<b>Lead:</b> ${esc(a.crew_lead||'Not listed')}<br><b>Members:</b> ${esc((a.members||[]).join(', ')||'None listed')}<br><b>Starting at:</b> ${esc(a.start_item_label||'Beginning of route')}`;
+ document.getElementById('homeProgressBar').style.width=pct+'%';
+ document.getElementById('homeProgressText').textContent=`${resolved} / ${signs.length} signs resolved · ${remaining.length} remaining`;
+ const last=lastCompletedAssignedSign();
+ document.getElementById('homeLastCompleted').innerHTML=last?`<b>Last installed:</b> Sign ${esc(last.sign_no)} · MP ${last.milepost??''}`:'<b>Last installed:</b> None yet';
+ const m=remainingMaterialSummary();
+ document.getElementById('homeRemainingLoad').innerHTML=`<ul>${Object.entries(m.anchors).map(([k,v])=>`<li><b>${v}</b> ${esc(k)} anchors</li>`).join('')||'<li>No remaining anchors</li>'}${Object.entries(m.posts).sort((a,b)=>Number(a[0])-Number(b[0])).map(([k,v])=>`<li><b>${v}</b> × ${esc(k)} ft posts</li>`).join('')||'<li>No remaining posts</li>'}</ul>`;
+ const complete=remaining.length===0&&signs.length>0;
+ document.getElementById('routeCompleteCard').style.display=complete?'block':'none';
+ if(complete)document.getElementById('routeCompleteText').textContent=`${a.route} ${a.direction}: ${signs.length} of ${signs.length} signs resolved.`;
+ showAssignmentBanner(a);
+}
+function continueAssignment(){
+ const a=state.active_assignment;if(!a){alert('Load an assignment first.');return}
+ applyAssignmentFilters();
+ const next=firstUnresolvedAssignedLocation();
+ if(!next){renderCurrentAssignment();alert('This route assignment is complete.');return}
+ if(!state.workday.active){state.workday={active:true,started_at:new Date().toISOString(),crew:state.crew,route:a.route,direction:a.direction};addEvent('workday_started',`Workday started on ${a.route} ${a.direction}`)}
+ loadFieldByFilters();
+ const btn=[...document.querySelectorAll('nav button')].find(b=>b.textContent.includes('Continue Work'));showTab('field',btn);
+}
+function openLoadTruck(){
+ applyAssignmentFilters();renderPallet();
+ const btn=[...document.querySelectorAll('nav button')].find(b=>b.textContent.includes('Load Truck'));showTab('pallet',btn);
+}
+
+
+function currentFieldSignItem(){
+ const next=firstUnresolvedAssignedLocation();
+ if(!next)return '';
+ const s=locSigns(next).find(x=>!signResolved(x.id))||locSigns(next)[0];
+ return s?(s.item_no||s.sign_no||s.id):next.id;
+}
+function submitCrewRequest(){
+ const a=state.active_assignment;
+ if(!a){alert('Load an assignment first.');return}
+ const comment=document.getElementById('requestComment').value.trim();
+ if(!comment){alert('Enter a comment describing what is needed.');return}
+ const req={
+  id:'R'+Date.now(),
+  created_at:new Date().toISOString(),
+  crew_name:a.crew_name||state.crew||'Assigned crew',
+  crew_lead:a.crew_lead||'',
+  route:a.route||'',
+  direction:a.direction||'',
+  request_type:document.getElementById('requestType').value,
+  urgency:document.getElementById('requestUrgency').value,
+  quantity:document.getElementById('requestQuantity').value||'',
+  sign_item:document.getElementById('requestSignItem').value.trim()||currentFieldSignItem(),
+  comment,
+  office_email:a.office_email||''
+ };
+ state.crew_requests.push(req);save();renderCrewRequestHistory();
+ const subject=encodeURIComponent(`[Select Signing] ${req.urgency}: ${req.request_type} request from ${req.crew_name}`);
+ const body=encodeURIComponent(`Crew: ${req.crew_name}
+Lead: ${req.crew_lead}
+Route: ${req.route} ${req.direction}
+Sign/item: ${req.sign_item||'Not specified'}
+Type: ${req.request_type}
+Quantity: ${req.quantity||'Not specified'}
+Urgency: ${req.urgency}
+
+Comment:
+${req.comment}
+
+Request ID: ${req.id}
+Time: ${req.created_at}`);
+ downloadSingleCrewRequest(req);
+ if(req.office_email){
+  window.location.href=`mailto:${encodeURIComponent(req.office_email)}?subject=${subject}&body=${body}`;
+ }else{
+  alert('Request saved and downloaded. No office notification email was included in this assignment.');
+ }
+ document.getElementById('requestQuantity').value='';
+ document.getElementById('requestComment').value='';
+}
+function downloadSingleCrewRequest(req){
+ const blob=new Blob([JSON.stringify(req,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download=`Crew_Request_${req.crew_name.replace(/[^a-z0-9]+/gi,'_')}_${req.id}.json`;
+ a.click();URL.revokeObjectURL(a.href);
+}
+function downloadCrewRequests(){
+ const blob=new Blob([JSON.stringify(state.crew_requests,null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+ a.download=`Crew_Request_Log_${(state.crew||'Crew').replace(/[^a-z0-9]+/gi,'_')}.json`;
+ a.click();URL.revokeObjectURL(a.href);
+}
+function renderCrewRequestHistory(){
+ const out=document.getElementById('crewRequestHistory');if(!out)return;
+ out.innerHTML=state.crew_requests.slice().sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).map(r=>`<div class="card" style="margin-top:10px">
+ <b>${esc(r.request_type)}</b> — ${esc(r.urgency)}<br>
+ Sign/item: ${esc(r.sign_item||'Not specified')} · Qty: ${esc(String(r.quantity||''))}<br>
+ ${esc(r.comment)}<br><span class="note">${esc(r.created_at)}</span>
+ </div>`).join('')||'<p>No requests sent yet.</p>';
+}
+
 function showAssignmentBanner(a){
  const card=document.getElementById('assignmentBanner');
  if(!card)return;
- card.innerHTML=`<b>${esc(a.crew_name)}</b> · ${esc(a.route)} ${esc(a.direction)}<br>Lead: ${esc(a.crew_lead)} · Members: ${esc((a.members||[]).join(', ')||'None listed')}<br>Starts at ${esc(a.start_item_label||'the beginning of the route')} and then continues at the first unresolved sign.`;
+ card.innerHTML=`<b>${esc(a.crew_name)}</b> · ${esc(a.route)} ${esc(a.direction)}<br>Lead: ${esc(a.crew_lead)} · Members: ${esc((a.members||[]).join(', ')||'None listed')}<br>Starts at ${esc(a.start_item_label||'the beginning of the route')} and continues automatically at the first unresolved sign.`;
  card.style.display='block';
 }
 function importAssignment(event){
@@ -405,241 +526,7 @@ function signPlanDirection(sign){
  return loc?locPlanDirection(loc):alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
 }
 
-function showTab(id,btn){document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='assignments')renderAssignments();if(id==='planner')renderPlanner();if(id==='field')loadFieldByFilters();if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
-
-function initAssignmentControls(){
- const routes=[...new Set(PROJECT.locations.map(l=>l.route))].sort();
- document.getElementById('assignRoute').innerHTML=routes.map(r=>`<option>${esc(r)}</option>`).join('');
- refreshAssignmentDirections();
- renderAssignments();
-}
-
-function savedLeadRecords(){
- const map=new Map();
- for(const c of state.saved_crews){
-  const name=(c.lead||'').trim();
-  if(name&&!map.has(name.toLowerCase()))map.set(name.toLowerCase(),{name,email:c.email||''});
- }
- return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
-}
-function refreshSavedCrewControls(){
- const crewSelect=document.getElementById('assignCrewSelect');
- const leadSelect=document.getElementById('assignLead');
- if(crewSelect){
-  const current=crewSelect.value;
-  crewSelect.innerHTML='<option value="">Select saved crew</option>'+state.saved_crews.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
-  if([...crewSelect.options].some(o=>o.value===current))crewSelect.value=current;
- }
- if(leadSelect){
-  const current=leadSelect.value;
-  leadSelect.innerHTML='<option value="">Select crew lead</option>'+savedLeadRecords().map(l=>`<option value="${esc(l.name)}" data-email="${esc(l.email)}">${esc(l.name)}</option>`).join('');
-  if([...leadSelect.options].some(o=>o.value===current))leadSelect.value=current;
- }
- renderSavedCrews();
-}
-function saveCrewProfile(){
- const name=document.getElementById('savedCrewName').value.trim();
- const lead=document.getElementById('savedCrewLead').value.trim();
- if(!name){alert('Enter a crew name.');return}
- const existing=state.saved_crews.find(c=>c.name.toLowerCase()===name.toLowerCase());
- const record={
-  id:existing?.id||('C'+Date.now()),
-  name,lead,
-  email:document.getElementById('savedCrewEmail').value.trim(),
-  members:document.getElementById('savedCrewMembers').value.split(',').map(x=>x.trim()).filter(Boolean)
- };
- if(existing)state.saved_crews=state.saved_crews.map(c=>c.id===existing.id?record:c);
- else state.saved_crews.push(record);
- save();clearCrewProfileForm();refreshSavedCrewControls();
-}
-function clearCrewProfileForm(){
- ['savedCrewName','savedCrewLead','savedCrewEmail','savedCrewMembers'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
-}
-function editSavedCrew(id){
- const c=state.saved_crews.find(x=>x.id===id);if(!c)return;
- document.getElementById('savedCrewName').value=c.name||'';
- document.getElementById('savedCrewLead').value=c.lead||'';
- document.getElementById('savedCrewEmail').value=c.email||'';
- document.getElementById('savedCrewMembers').value=(c.members||[]).join(', ');
-}
-function deleteSavedCrew(id){
- const c=state.saved_crews.find(x=>x.id===id);if(!c)return;
- if(!confirm(`Delete saved crew "${c.name}"? Existing assignments will remain.`))return;
- state.saved_crews=state.saved_crews.filter(x=>x.id!==id);save();refreshSavedCrewControls();
-}
-function useSavedCrew(id){
- const el=document.getElementById('assignCrewSelect');el.value=id;applySavedCrewToAssignment();
-}
-function renderSavedCrews(){
- const out=document.getElementById('savedCrewList');if(!out)return;
- out.innerHTML=state.saved_crews.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<div class="card" style="margin-top:10px">
- <b>${esc(c.name)}</b><br>Lead: ${esc(c.lead||'Not assigned')}<br>Members: ${esc((c.members||[]).join(', ')||'None listed')}<br>${c.email?`Email: ${esc(c.email)}<br>`:''}
- <button onclick="useSavedCrew('${c.id}')">Use for assignment</button>
- <button onclick="editSavedCrew('${c.id}')">Edit</button>
- <button class="danger" onclick="deleteSavedCrew('${c.id}')">Delete</button>
- </div>`).join('')||'<p>No crews saved yet.</p>';
-}
-function applySavedCrewToAssignment(){
- const id=document.getElementById('assignCrewSelect').value;
- const c=state.saved_crews.find(x=>x.id===id);if(!c)return;
- document.getElementById('assignCrewName').value=c.name||'';
- document.getElementById('assignLead').value=c.lead||'';
- document.getElementById('assignEmail').value=c.email||'';
- document.getElementById('assignMembers').value=(c.members||[]).join(', ');
-}
-function applyLeadToAssignment(){
- const select=document.getElementById('assignLead');
- const option=select.selectedOptions[0];
- if(option&&option.dataset.email)document.getElementById('assignEmail').value=option.dataset.email;
-}
-function importCrewRequestFile(file){
- if(!file)return;
- const reader=new FileReader();
- reader.onload=()=>{
-  try{
-   const data=JSON.parse(reader.result);
-   const rows=Array.isArray(data)?data:[data];
-   rows.forEach(r=>{
-    if(!r.id)r.id='R'+Date.now()+Math.random().toString(16).slice(2);
-    if(!state.crew_requests.some(x=>x.id===r.id))state.crew_requests.push({...r,read:false});
-   });
-   save();renderCrewRequests();document.getElementById('crewRequestFile').value='';
-   if(Notification.permission==='granted')new Notification('New crew request',{body:`${rows.length} request${rows.length===1?'':'s'} imported.`});
-  }catch(e){alert('That request file could not be read.')}
- };
- reader.readAsText(file);
-}
-function renderCrewRequests(){
- const out=document.getElementById('crewRequestList'),badge=document.getElementById('crewRequestBadge');
- if(!out||!badge)return;
- const unread=state.crew_requests.filter(r=>!r.read).length;
- badge.textContent=`${unread} new`;
- out.innerHTML=state.crew_requests.slice().sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).map(r=>`<div class="card" style="margin-top:10px;${r.read?'':'border:2px solid currentColor'}">
- <b>${esc(r.request_type||'Crew request')}</b> — ${esc(r.urgency||'Normal')}<br>
- <b>Crew:</b> ${esc(r.crew_name||'Unknown')} · <b>Route:</b> ${esc((r.route||'')+' '+(r.direction||''))}<br>
- <b>Item/sign:</b> ${esc(r.sign_item||'Not specified')} · <b>Quantity:</b> ${esc(String(r.quantity||''))}<br>
- <b>Comment:</b> ${esc(r.comment||'')}<br>
- <span class="note">${esc(r.created_at||'')}</span><br>
- <button onclick="setRequestRead('${r.id}',${r.read?'false':'true'})">${r.read?'Mark unread':'Mark read'}</button>
- <button class="danger" onclick="deleteCrewRequest('${r.id}')">Delete</button>
- </div>`).join('')||'<p>No crew requests imported.</p>';
-}
-function setRequestRead(id,read){const r=state.crew_requests.find(x=>x.id===id);if(r){r.read=read;save();renderCrewRequests()}}
-function markAllRequestsRead(){state.crew_requests.forEach(r=>r.read=true);save();renderCrewRequests()}
-function deleteCrewRequest(id){state.crew_requests=state.crew_requests.filter(r=>r.id!==id);save();renderCrewRequests()}
-
-function refreshAssignmentDirections(){
- const route=document.getElementById('assignRoute').value;
- document.getElementById('assignDirection').innerHTML=canonicalDirections(route).map(d=>`<option>${d}</option>`).join('');
- refreshAssignmentStartItems();
-}
-function assignmentRouteLocations(route,direction){
- let list=PROJECT.locations.filter(l=>l.route===route&&locPlanDirection(l)===direction);
- list.sort((a,b)=>travelCompare(a,b,locPlanDirection));
- return list;
-}
-function refreshAssignmentStartItems(){
- const route=document.getElementById('assignRoute').value;
- const direction=document.getElementById('assignDirection').value;
- const select=document.getElementById('assignStartItem');if(!select)return;
- const rows=[];
- for(const loc of assignmentRouteLocations(route,direction)){
-  const signs=locSigns(loc);
-  if(!signs.length){
-   rows.push({id:loc.id,label:`MP ${loc.milepost??''} — ${loc.label}`});
-  }else{
-   for(const s of signs){
-    const item=s.item_no||s.sign_no||s.id;
-    rows.push({id:s.id,label:`Item ${item} · Sign ${s.sign_no||''} · MP ${s.milepost??loc.milepost??''} · ${s.description||s.legend||loc.label||''}`});
-   }
-  }
- }
- select.innerHTML='<option value="">Beginning of route</option>'+rows.map(x=>`<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('');
-}
-
-function saveAssignment(){
- const route=document.getElementById('assignRoute').value;
- const direction=document.getElementById('assignDirection').value;
- const crewName=document.getElementById('assignCrewName').value.trim()||'Assigned Crew';
- state.assignments=state.assignments.filter(x=>x.crew_name!==crewName);
- state.assignments.push({
-  id:'A'+Date.now(),created_at:new Date().toISOString(),
-  crew_name:crewName,
-  crew_lead:document.getElementById('assignLead').value.trim(),
-  lead_email:document.getElementById('assignEmail').value.trim(),
-  members:document.getElementById('assignMembers').value.split(',').map(x=>x.trim()).filter(Boolean),
-  office_email:document.getElementById('assignOfficeEmail').value.trim(),
-  route,direction,persistent:true,
-  start_item_id:document.getElementById('assignStartItem').value||'',
-  start_item_label:document.getElementById('assignStartItem').selectedOptions[0]?.textContent||'Beginning of route'
- });
- save();renderAssignments();renderDashboard();
-}
-function assignmentSummary(a){
- const signs=assignmentLocations(a).flatMap(locSigns);
- const remaining=signs.filter(s=>!signResolved(s.id));
- const anchors={},posts={};
- remaining.forEach(s=>{
-  if(s.anchor_type&&s.anchor_type!=='None')anchors[s.anchor_type]=(anchors[s.anchor_type]||0)+1;
-  [s.left_post_length,s.right_post_length].forEach(v=>{if(v!==null&&v!==undefined&&v!=='')posts[v]=(posts[v]||0)+1});
- });
- return `${a.crew_name}
-Lead: ${a.crew_lead}
-Members: ${(a.members||[]).join(', ')||'None listed'}
-Current assignment: ${a.route} ${a.direction}
-Starting at: ${a.start_item_label||'Beginning of route'}
-Office notifications: ${a.office_email||'Not configured'}
-Progress: ${signs.length-remaining.length} / ${signs.length} signs resolved
-Remaining anchors: ${Object.entries(anchors).map(([k,v])=>`${k} ${v}`).join(', ')||'None'}
-Remaining posts: ${Object.entries(posts).sort((x,y)=>Number(x[0])-Number(y[0])).map(([k,v])=>`${k} ft: ${v}`).join(', ')||'None'}
-
-This assignment remains active until changed by the office.`;
-}
-function downloadAssignment(id){
- const a=state.assignments.find(x=>x.id===id); if(!a)return;
- const blob=new Blob([JSON.stringify(a,null,2)],{type:'application/json'});
- const url=URL.createObjectURL(blob),link=document.createElement('a');
- link.href=url;link.download=`${a.crew_name.replace(/[^a-z0-9]+/gi,'_')}_${a.route}_${a.direction}_Persistent_Assignment.json`;
- link.click();URL.revokeObjectURL(url);
-}
-async function copyAssignment(id){
- const a=state.assignments.find(x=>x.id===id); if(!a)return;
- await navigator.clipboard.writeText(assignmentSummary(a)); alert('Assignment summary copied.');
-}
-function emailAssignment(id){
- const a=state.assignments.find(x=>x.id===id); if(!a)return;
- const subject=encodeURIComponent(`${a.crew_name} assignment — ${a.route} ${a.direction}`);
- const body=encodeURIComponent(assignmentSummary(a)+'\n\nDownload the assignment file from the office and open it using Load Assignment in the crew app.');
- location.href=`mailto:${encodeURIComponent(a.lead_email||'')}?subject=${subject}&body=${body}`;
-}
-function deleteAssignment(id){
- state.assignments=state.assignments.filter(x=>x.id!==id);save();renderAssignments();
-}
-function assignmentProgress(a){
- const signs=assignmentLocations(a).flatMap(locSigns);
- const resolved=signs.filter(s=>signResolved(s.id)).length;
- const installed=signs.filter(s=>signState(s.id).completed).length;
- const attention=signs.filter(s=>signState(s.id).not_installed).length;
- return {total:signs.length,resolved,installed,attention,remaining:signs.length-resolved,pct:signs.length?Math.round(resolved/signs.length*100):0};
-}
-function renderAssignments(){
- const out=document.getElementById('assignmentList');if(!out)return;
- out.innerHTML=state.assignments.map(a=>{const p=assignmentProgress(a);return `<div class="card" style="margin-top:12px">
- <h3>${esc(a.crew_name)} — ${esc(a.route)} ${esc(a.direction)}</h3>
- <p><b>Status:</b> ${p.remaining===0?'Complete':'Assigned'}<br><b>Lead:</b> ${esc(a.crew_lead||'Not listed')}<br>
- <b>Members:</b> ${esc((a.members||[]).join(', ')||'None listed')}<br>
- <b>Starting at:</b> ${esc(a.start_item_label||'Beginning of route')}<br>
- <b>Progress:</b> ${p.resolved} / ${p.total} (${p.pct}%) · <b>Remaining:</b> ${p.remaining}<br>
- <b>Installed:</b> ${p.installed} · <b>Not installed:</b> ${p.attention}</p>
- <div class="progress"><div style="width:${p.pct}%"></div></div>
- <button onclick="downloadAssignment('${a.id}')">Download assignment</button>
- <button onclick="copyAssignment('${a.id}')">Copy summary</button>
- <button onclick="emailAssignment('${a.id}')">Email crew lead</button>
- <button class="danger" onclick="deleteAssignment('${a.id}')">Remove assignment</button>
- </div>`}).join('')||'<div class="card" style="margin-top:12px">No crews are currently assigned.</div>';
- renderCrewAssignmentDashboard();
-}
-
+function showTab(id,btn){if(!btn)return;document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='planner')renderPlanner();if(id==='dashboard')renderCurrentAssignment();if(id==='field')loadFieldByFilters();if(id==='requests'){document.getElementById('requestSignItem').value=currentFieldSignItem();renderCrewRequestHistory();}if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
 function renderDashboard(){
  const total=PROJECT.signs.length,done=PROJECT.signs.filter(s=>signState(s.id).completed).length,remain=total-done;
  const soil=PROJECT.signs.filter(s=>s.anchor_type==='Soil'&&!signState(s.id).completed).length;
@@ -724,13 +611,14 @@ function fieldFilteredLocations(){
  let list=PROJECT.locations.filter(l=>{
   const ss=locSigns(l), text=(l.label+' '+ss.map(s=>s.description+' '+s.remarks).join(' ')).toLowerCase();
   const attention=ss.some(s=>{const x=signState(s.id);return x.return_trip||x.reason||x.notes});
-  return (r==='all'||l.route===r)
+  return (!state.active_assignment||(l.route===state.active_assignment.route&&locPlanDirection(l)===state.active_assignment.direction))
+   &&(r==='all'||l.route===r)
    &&(d==='all'||locPlanDirection(l)===d)
    &&(a==='all'||(a==='anchors'?locAnchor(l)!=='None':a==='none'?locAnchor(l)==='None':locAnchor(l)===a))
    &&(st==='all'||(st==='complete'?locComplete(l):st==='attention'?attention:!locComplete(l)))
    &&(!q||text.includes(q));
  });
- list.sort((x,y)=>travelCompare(x,y,locDirection));
+ list.sort((x,y)=>travelCompare(x,y,locPlanDirection));
  return list;
 }
 function fieldColorClass(l){
@@ -797,7 +685,7 @@ function fieldSignHtml(s){
  <b>Status:</b> ${esc(signStatusText(s.id))}</p>
  <label class="status-choice"><input type="checkbox" ${st.completed?'checked':''} onchange="setInstallStatus('${s.id}','installed',this.checked)"> Installed</label>
  <label class="status-choice"><input type="checkbox" ${st.not_installed?'checked':''} onchange="setInstallStatus('${s.id}','not_installed',this.checked)"> Not installed</label><br>
- <label>Crew <input value="${esc(st.crew)}" onchange="updateField('${s.id}','crew',this.value)"></label><br>
+ 
  <label>Reason <select onchange="updateField('${s.id}','reason',this.value)"><option></option>${['Rock','Utility conflict','Traffic','Missing hardware','Other'].map(x=>`<option ${st.reason===x?'selected':''}>${x}</option>`).join('')}</select></label><br>
  <label><input type="checkbox" ${st.return_trip?'checked':''} onchange="updateField('${s.id}','return_trip',this.checked)"> Return trip required</label><br>
  <label>Optional photo <input type="file" accept="image/*" onchange="attachPhoto('${s.id}',this.files[0])"></label>${state.photos[s.id]?`<img class="photo-preview" src="${state.photos[s.id]}">`:``}<br>
@@ -842,12 +730,15 @@ function startDrive(locationId){
  save();
 }
 function endWorkDay(auto=false){
- const today=new Date().toISOString().slice(0,10);
- state.workday[today]=state.workday[today]||{};
- if(state.workday[today].ended_at&&!auto)return;
- state.workday[today].ended_at=new Date().toISOString();
- addEvent('workday_ended',auto?'Workday automatically ended after final loaded sign was completed':'Workday ended manually');
- save();renderTimeline();
+ if(state.workday.active){
+  state.workday.active=false;state.workday.ended_at=new Date().toISOString();
+  addEvent('workday_ended',`Workday ended on ${state.active_assignment?state.active_assignment.route+' '+state.active_assignment.direction:'assignment'}`);
+  save();
+ }
+ renderCurrentAssignment();
+ const btn=[...document.querySelectorAll('nav button')].find(b=>b.textContent.includes('Current Assignment'));
+ if(btn)showTab('dashboard',btn);
+ if(!auto)alert('Workday ended. Continue Work will resume at the first unresolved sign.');
 }
 function resumeRoute(){
  let list=fieldFilteredLocations().filter(l=>!locResolved(l));
@@ -977,18 +868,7 @@ function exportKML(){
  return `<b>${s.sign_no}</b> — ${signState(s.id).completed?'Complete':'Incomplete'}<br>Anchor: ${s.anchor_type}<br>${postText}<br>Dimension: ${s.installation_dimension??''}${signState(s.id).notes?'<br>Notes: '+signState(s.id).notes:''}`;
 }).join('<hr>');p+=`<Placemark><name>${esc(l.label)}</name><description><![CDATA[${desc}]]></description><styleUrl>#${sty}</styleUrl><Point><coordinates>${l.longitude},${l.latitude},0</coordinates></Point></Placemark>`}p+='</Document></kml>';download('Select_Signing_Updated.kml',p,'application/vnd.google-earth.kml+xml')
 }
-
-function renderCrewAssignmentDashboard(){
- const out=document.getElementById('crewAssignmentDashboard');if(!out)return;
- if(!state.assignments.length){out.innerHTML='<p>No crews assigned.</p>';return}
- out.innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Crew</th><th>Route</th><th>Status</th><th>Progress</th><th>Remaining</th><th>Attention</th></tr></thead><tbody>${
- state.assignments.map(a=>{const p=assignmentProgress(a);return `<tr><td><b>${esc(a.crew_name)}</b><br>${esc(a.crew_lead||'')}</td><td>${esc(a.route)} ${esc(a.direction)}</td><td>${p.remaining===0?'Complete':'Assigned'}</td><td>${p.resolved} / ${p.total} (${p.pct}%)</td><td>${p.remaining}</td><td>${p.attention}</td></tr>`}).join('')
- }</tbody></table></div>`;
-}
-const originalRenderDashboard=renderDashboard;
-renderDashboard=function(){originalRenderDashboard();renderCrewAssignmentDashboard();};
-
-document.getElementById('projectTitle').textContent=PROJECT.project_name+' · v2.0 Crew Test';document.getElementById('crewName').value=state.crew||'';document.getElementById('timelineDate').value=new Date().toISOString().slice(0,10);
-initFilters();refreshSavedCrewControls();renderCrewRequests();initAssignmentControls();renderDashboard();
+document.getElementById('projectTitle').textContent=PROJECT.project_name+' · Crew Current Assignment';document.getElementById('crewName').value=state.crew||'';document.getElementById('timelineDate').value=new Date().toISOString().slice(0,10);
+initFilters();applyAssignmentFilters();renderDashboard();renderCurrentAssignment();renderCrewRequestHistory();
 </script>
 </body></html>
