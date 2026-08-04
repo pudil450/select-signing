@@ -543,12 +543,73 @@ async function v2ClaimRoute(){
 }
 async function v2ReleaseRoute(showMessage=true){
  if(!V2_SESSION)return;
- const r=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+"&status=eq.active",{
-  method:"PATCH",headers:{...v2AuthHeaders(),"Prefer":"return=minimal"},
-  body:JSON.stringify({status:"released",updated_at:new Date().toISOString()})
- });
- if(showMessage&&r.ok)alert("Route released.");
- v2RefreshClaims();
+
+ try{
+  const response=await fetch(
+   LIVE_SUPABASE_URL+
+   "/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+
+   "&status=eq.active",
+   {
+    method:"PATCH",
+    headers:{...v2AuthHeaders(),"Prefer":"return=minimal"},
+    body:JSON.stringify({
+     status:"released",
+     updated_at:new Date().toISOString()
+    })
+   }
+  );
+
+  if(!response.ok)throw new Error(await response.text());
+
+  // Clear the active route locally.
+  state.active_assignment=null;
+  state.selected=[];
+  selected=new Set();
+  localStorage.setItem(KEY,JSON.stringify(state));
+
+  // Reset filters so the next route starts clean.
+  const resetSelect=(id,value="all")=>{
+   const el=document.getElementById(id);
+   if(el)el.value=value;
+  };
+  resetSelect("fieldRouteFilter");
+  resetSelect("fieldDirectionFilter");
+  resetSelect("fieldAnchorFilter");
+  resetSelect("fieldStatusFilter");
+  resetSelect("palletRouteFilter");
+  resetSelect("palletDirectionFilter");
+  resetSelect("palletAnchorFilter");
+  resetSelect("materialsRouteFilter");
+  resetSelect("materialsDirectionFilter");
+
+  // Refresh dashboard and clear route card.
+  if(typeof renderCurrentAssignment==="function")renderCurrentAssignment();
+  if(typeof renderDashboard==="function")renderDashboard();
+  if(typeof v3UpdateRouteDashboard==="function")v3UpdateRouteDashboard();
+  if(typeof v2RefreshClaims==="function")await v2RefreshClaims();
+
+  // Return to main dashboard.
+  const dashboardButton=[...document.querySelectorAll("nav button")]
+   .find(b=>/dashboard/i.test(b.textContent||""));
+  if(dashboardButton){
+   showTab("dashboard",dashboardButton);
+  }else{
+   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+   const dashboard=document.getElementById("dashboard");
+   if(dashboard)dashboard.classList.add("active");
+   document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  }
+
+  window.scrollTo({top:0,behavior:"smooth"});
+
+  if(showMessage){
+   if(typeof v3Toast==="function")v3Toast("Route released");
+   else alert("Route released.");
+  }
+ }catch(error){
+  console.error(error);
+  if(showMessage)alert("Could not release route: "+error.message);
+ }
 }
 async function v2LoadMyClaim(){
  const r=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+"&status=eq.active&select=*&limit=1",{headers:v2AuthHeaders()});
