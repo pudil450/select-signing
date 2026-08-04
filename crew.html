@@ -689,18 +689,43 @@ function signPlanDirection(sign){
 
 function showTab(id,btn){if(!btn)return;document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='planner')renderPlanner();if(id==='dashboard')renderCurrentAssignment();if(id==='field')loadFieldByFilters();if(id==='requests'){document.getElementById('requestSignItem').value=currentFieldSignItem();renderCrewRequestHistory();}if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
 function renderDashboard(){
- const total=PROJECT.signs.length,done=PROJECT.signs.filter(s=>signState(s.id).completed).length,remain=total-done;
+ const total=PROJECT.signs.length;
+ const done=PROJECT.signs.filter(s=>signState(s.id).completed).length;
+ const remain=total-done;
  const soil=PROJECT.signs.filter(s=>s.anchor_type==='Soil'&&!signState(s.id).completed).length;
  const slip=PROJECT.signs.filter(s=>s.anchor_type==='Slip-Base'&&!signState(s.id).completed).length;
- const today=new Date().toISOString().slice(0,10),todayDone=PROJECT.signs.filter(s=>(signState(s.id).completed_at||'').startsWith(today)).length;
- document.getElementById('dashboardCards').innerHTML=[
- ['Total signs',total],['Completed',done],['Remaining',remain],['Completed today',todayDone],['Soil anchors remaining',soil],['Slip-base remaining',slip]
- ].map(x=>`<div class="card"><div>${x[0]}</div><div class="big">${x[1]}</div></div>`).join('');
- const pct=total?Math.round(done/total*100):0;document.getElementById('progressBar').style.width=pct+'%';document.getElementById('progressText').textContent=`${done} of ${total} signs complete (${pct}%)`;
- const routes=[...new Set(PROJECT.signs.map(s=>s.route))];
- document.getElementById('routeSummary').innerHTML=routes.map(r=>{const ss=PROJECT.signs.filter(s=>s.route===r),d=ss.filter(s=>signState(s.id).completed).length;return `<p><b>${r}</b>: ${d} / ${ss.length} complete</p>`}).join('');
-}
+ const today=new Date().toISOString().slice(0,10);
+ const todayDone=PROJECT.signs.filter(s=>(signState(s.id).completed_at||'').startsWith(today)).length;
 
+ const cards=document.getElementById('dashboardCards');
+ if(cards){
+  cards.innerHTML=[
+   ['Total signs',total],
+   ['Completed',done],
+   ['Remaining',remain],
+   ['Completed today',todayDone],
+   ['Soil anchors remaining',soil],
+   ['Slip-base remaining',slip]
+  ].map(x=>`<div class="card"><div>${x[0]}</div><div class="big">${x[1]}</div></div>`).join('');
+ }
+
+ const pct=total?Math.round(done/total*100):0;
+ const bar=document.getElementById('progressBar');
+ if(bar)bar.style.width=pct+'%';
+
+ const progressText=document.getElementById('progressText');
+ if(progressText)progressText.textContent=`${done} of ${total} signs complete (${pct}%)`;
+
+ const summary=document.getElementById('routeSummary');
+ if(summary){
+  const routes=[...new Set(PROJECT.signs.map(s=>s.route))];
+  summary.innerHTML=routes.map(r=>{
+   const ss=PROJECT.signs.filter(s=>s.route===r);
+   const d=ss.filter(s=>signState(s.id).completed).length;
+   return `<p><b>${r}</b>: ${d} / ${ss.length} complete</p>`;
+  }).join('');
+ }
+}
 function fillCanonicalDirection(selectId,route,allLabel='All directions'){
  const el=document.getElementById(selectId); if(!el)return;
  const dirs=route==='all'?['Eastbound','Westbound','Northbound','Southbound']:canonicalDirections(route);
