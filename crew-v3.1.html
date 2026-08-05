@@ -126,7 +126,7 @@ input,select,textarea{border:1px solid #cfd4da;border-radius:8px;background:whit
 
 
 .anchor-dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:middle;margin:0 5px 2px 2px;border:2px solid #fff;box-shadow:0 0 0 1px #555}
-.anchor-slip{background:#ff8000}
+.anchor-slip{background:#ffff00;border-color:#111;box-shadow:0 0 0 1px #111}
 .anchor-soil{background:#0000ff}
 .anchor-none{background:#9ca3af}
 .anchor-dot-label{font-size:12px;font-weight:800;color:#4b5563;margin-right:6px}
@@ -163,6 +163,17 @@ html{scroll-padding-top:155px}
  html{scroll-padding-top:135px}
  .tab,.stop-card,.first-stop,#firstStopCard,#fieldStops{scroll-margin-top:135px}
 }
+
+
+.sign-extra-details{
+ margin:8px 0 10px;
+ padding:9px 11px;
+ background:#f8fafc;
+ border-left:5px solid #f97316;
+ border-radius:8px;
+ line-height:1.45;
+}
+.sign-extra-details div+div{margin-top:4px}
 
 </style>
 </head>
@@ -308,7 +319,7 @@ html{scroll-padding-top:155px}
 
 <div class="anchor-legend">
  <b>Anchor key:</b>
- <span><i class="anchor-dot anchor-slip"></i> Slip-Base (Earth orange)</span>
+ <span><i class="anchor-dot anchor-slip"></i> Slip-Base (bright yellow)</span>
  <span><i class="anchor-dot anchor-soil"></i> Soil (Earth blue)</span>
  <span><i class="anchor-dot anchor-none"></i> No anchor</span>
 </div>
@@ -361,6 +372,48 @@ html{scroll-padding-top:155px}
 </main>
 
 <script>
+
+const IA1_NB_STATUS_INIT_KEY="select-signing-ia1-nb-initialized-v1";
+
+function initializeIA1NorthboundStatus(force=false){
+ if(!force && localStorage.getItem(IA1_NB_STATUS_INIT_KEY)==="yes")return false;
+
+ for(const sign of PROJECT.signs){
+  const signNo=Number(sign.sign_no);
+  if(sign.route!=="IA-1" || !Number.isFinite(signNo) || signNo<1 || signNo>498)continue;
+
+  const current=state.signs[sign.id]||{};
+  const hasAnchor=sign.anchor_type==="Soil" || sign.anchor_type==="Slip-Base";
+
+  if(hasAnchor){
+   state.signs[sign.id]={
+    ...current,
+    completed:false,
+    not_installed:false,
+    reason:"",
+    return_trip:false,
+    completed_at:"",
+    completed_by:""
+   };
+  }else{
+   state.signs[sign.id]={
+    ...current,
+    completed:true,
+    not_installed:false,
+    reason:"",
+    return_trip:false,
+    completed_at:current.completed_at||new Date().toISOString(),
+    completed_by:current.completed_by||"Project initialization",
+    notes:current.notes||"IA-1 NB no-anchor work completed before app rollout"
+   };
+  }
+ }
+
+ localStorage.setItem(IA1_NB_STATUS_INIT_KEY,"yes");
+ localStorage.setItem(KEY,JSON.stringify(state));
+ return true;
+}
+
 
 function v3Toast(message){
  const old=document.querySelector(".v3-toast");if(old)old.remove();
@@ -1513,7 +1566,7 @@ function renderFieldLocations(list){
    return `<div class="stop-card locked-stop"><h3>Stop ${idx+1} — ${esc(l.route)} MP ${l.milepost??''}</h3>
     <p><b>${esc(l.label)}</b></p>
     <div class="locked-message">Resolve every sign at the current stop before opening this stop.</div>
-    ${signs.map(s=>`<div class="sign-row locked-sign-row"><b>Sign ${esc(s.sign_no)}</b> ${anchorDotHtml(s,true)} · ${esc(s.description)}${s.sign_size?` · ${esc(s.sign_size)}`:''}</div>`).join('')}</div>`;
+    ${signs.map(s=>`<div class="sign-row locked-sign-row"><b>Sign ${esc(s.sign_no)}</b> ${anchorDotHtml(s,true)} · ${esc(s.description)}${s.sign_size?` · ${esc(s.sign_size)}`:''}<br><small><b>Face:</b> ${esc(s.direction||"Not listed")} · <b>Remarks:</b> ${esc(s.remarks||"None")}</small></div>`).join('')}</div>`;
   }
 
   const stopResolved=signs.every(s=>signState(s.id).completed||signState(s.id).not_installed);
@@ -1587,6 +1640,10 @@ function fieldSignHtml(s){
  <div class="sign-visual-row">
   ${mutcdImageHtml(s)}
   <div class="sign-description"><b>${esc(s.description)}</b><br><span class="note">${esc(s.sign_size||"Size not listed")}</span></div>
+ </div>
+ <div class="sign-extra-details">
+  <div><b>Sign face direction:</b> ${esc(s.direction||"Not listed")}</div>
+  <div><b>Remarks:</b> ${esc(s.remarks||"None")}</div>
  </div>
  <p class="note"><b>Sign face direction:</b> ${esc(s.direction||'Not listed')}<br>
  <b>Posts:</b> ${s.left_post_length!==null&&s.left_post_length!==undefined?`Left ${esc(s.left_post_length)} ft`:''}${s.right_post_length!==null&&s.right_post_length!==undefined?` · Right ${esc(s.right_post_length)} ft`:(s.post_configuration==='Single post'?' · Single post':'')}<br>
@@ -1739,7 +1796,7 @@ function renderPallet(){
    <td><div class="load-sign-id">${anchorDotHtml(s)} <b>Sign ${esc(s.sign_no)}</b></div>${i<20?mutcdImageHtml(s,true):`<div class="mutcd-image-fallback compact">${esc(s.mutcd||"")}</div>`}</td>
    <td><b>${esc(s.mutcd||'')}</b><br>${esc(s.description||'')}</td>
    <td>${esc(sizeText(s))}</td>
-   <td>${esc(s.anchor_type||'None')}<br>${esc(s.remarks||'')}</td>
+   <td>${esc(s.anchor_type||'None')}<br><b>Face:</b> ${esc(s.direction||'Not listed')}<br><b>Remarks:</b> ${esc(s.remarks||'None')}</td>
   </tr>`).join('')||'<tr><td colspan="5">No signs match the selected filters.</td></tr>';
  const palletNote=document.getElementById('palletPerformanceNote');
  if(palletNote)palletNote.textContent=rows.length>20?`Showing image previews for the first 20 of ${rows.length} signs. All signs remain in the load list.`:'';
@@ -1786,6 +1843,7 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  if(!v2LoadStoredSession()){v2LoginOverlay();return}
  try{await v2LoadProfile()}catch(e){localStorage.removeItem("select-signing-v2-session");v2LoginOverlay();return}
  v2InstallCrewHeader();
+ initializeIA1NorthboundStatus();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
  if(status)status.textContent=count?`Plan-order routing active · roadway-side blocks · ${count} audited signs`:"Plan-order routing fallback active";
@@ -1793,5 +1851,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.04.01</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.04.03</div>
 </body></html>
