@@ -403,7 +403,14 @@ html{scroll-padding-top:155px}
 <label>Route <select id="fieldRouteFilter"></select></label>
 <label>Direction <select id="fieldDirectionFilter"><option value="all">All</option><option>Eastbound</option><option>Westbound</option></select></label>
 <label>Anchors <select id="fieldAnchorFilter"><option value="all">All signs</option><option value="anchors">All anchors</option><option value="none">No anchors</option><option value="Soil">Soil</option><option value="Slip-Base">Slip-Base</option></select></label>
-<label>Status <select id="fieldStatusFilter"><option value="all">All</option><option value="incomplete">Incomplete</option><option value="complete">Complete</option><option value="attention">Needs attention</option></select></label>
+<label>Status <select id="fieldStatusFilter">
+<option value="all">All statuses</option>
+<option value="open">Open / Needs Work</option>
+<option value="incomplete">Incomplete only</option>
+<option value="complete">Installed only</option>
+<option value="not_installed">Not installed only</option>
+<option value="attention">Needs attention only</option>
+</select></label>
 <label>Travel order <select id="fieldOrderFilter" disabled><option value="travel">Automatic by direction</option></select></label>
 <input id="fieldSearchFilter" placeholder="Sign number or description">
 <button class="primary" onclick="loadFieldByFilters()">Load route</button>
@@ -1661,7 +1668,12 @@ function filteredLocations(){
  const r=document.getElementById('routeFilter').value,d=document.getElementById('directionFilter').value,a=document.getElementById('anchorFilter').value,st=document.getElementById('statusFilter').value,q=document.getElementById('searchFilter').value.toLowerCase();
  let list=PROJECT.locations.filter(l=>{
   const ss=locSigns(l),text=(l.label+' '+ss.map(s=>s.description+' '+s.remarks).join(' ')).toLowerCase();
-  return (r==='all'||l.route===r)&&(d==='all'||locPlanDirection(l)===d)&&(a==='all'||(a==='anchors'?locAnchor(l)!=='None':a==='none'?locAnchor(l)==='None':locAnchor(l)===a))&&(st==='all'||(st==='complete'?locComplete(l):!locComplete(l)))&&(!q||text.includes(q));
+  return (r==='all'||l.route===r)&&(d==='all'||locPlanDirection(l)===d)&&(a==='all'||(a==='anchors'?locAnchor(l)!=='None':a==='none'?locAnchor(l)==='None':locAnchor(l)===a))&&(st==='all'||
+    st==='complete'?locComplete(l):
+    st==='not_installed'?locSigns(l).some(s=>signState(s.id).not_installed):
+    st==='attention'?locSigns(l).some(s=>{const x=signState(s.id);return x.return_trip||x.reason||x.notes}):
+    st==='open'?locSigns(l).some(s=>{const x=signState(s.id);return !x.completed||x.not_installed||x.return_trip||x.reason}):
+    !locComplete(l))&&(!q||text.includes(q));
  });
  list.sort((x,y)=>{const xm=x.milepost??999999,ym=y.milepost??999999;return document.getElementById('orderFilter').value==='asc'?xm-ym:ym-xm});
  return list;
@@ -1710,7 +1722,16 @@ function fieldFilteredLocations(){
    &&(r==='all'||l.route===r)
    &&(d==='all'||stopPlanDirection(l)===d)
    &&(a==='all'||(a==='anchors'?anchor!=='None':a==='none'?anchor==='None':anchor===a))
-   &&(st==='all'||(st==='complete'?complete:st==='attention'?attention:!complete))
+   &&(st==='all'||
+    (st==='open'?ss.some(s=>{
+      const x=signState(s.id);
+      return !x.completed||x.not_installed||x.return_trip||x.reason;
+    }):
+    st==='complete'?complete:
+    st==='not_installed'?ss.some(s=>signState(s.id).not_installed):
+    st==='attention'?attention:
+    st==='incomplete'?!complete:
+    true))
    &&(!q||text.includes(q));
  });
  list.sort(stopTravelCompare);
@@ -2272,5 +2293,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.08</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.11</div>
 </body></html>
