@@ -188,6 +188,54 @@ html{scroll-padding-top:155px}
  font-weight:900;
 }
 
+
+.crew-status-actions{
+ display:flex;
+ align-items:flex-start;
+ gap:10px;
+ flex-wrap:wrap;
+ margin-top:10px;
+}
+.installed-check{
+ display:inline-flex;
+ align-items:center;
+ gap:9px;
+ min-height:48px;
+ padding:9px 14px;
+ border-radius:10px;
+ background:#dcfce7;
+ border:2px solid #188038;
+ font-weight:900;
+ cursor:pointer;
+ user-select:none;
+}
+.installed-check input{
+ width:22px;
+ height:22px;
+ accent-color:#188038;
+}
+.more-status summary{
+ list-style:none;
+ cursor:pointer;
+ min-height:48px;
+ display:flex;
+ align-items:center;
+ padding:9px 14px;
+ border-radius:10px;
+ background:#343434;
+ color:#fff;
+ font-weight:900;
+}
+.more-status summary::-webkit-details-marker{display:none}
+.more-status[open]{width:100%}
+.more-status-panel{
+ margin-top:10px;
+ padding:12px;
+ border:1px solid #d1d5db;
+ border-radius:10px;
+ background:#f8fafc;
+}
+
 </style>
 </head>
 <body>
@@ -1708,14 +1756,23 @@ function fieldSignHtml(s){
  <b>Posts:</b> ${s.left_post_length!==null&&s.left_post_length!==undefined?`Left ${esc(s.left_post_length)} ft`:''}${s.right_post_length!==null&&s.right_post_length!==undefined?` · Right ${esc(s.right_post_length)} ft`:(s.post_configuration==='Single post'?' · Single post':'')}<br>
  <b>Installation dimension:</b> ${esc(s.installation_dimension??'')}<br>
  <b>Status:</b> ${esc(signStatusText(s.id))}${signState(s.id).office_override?' <span class="office-override-badge">OFFICE OVERRIDE</span>':''}</p>
- <label class="status-choice"><input type="checkbox" ${st.completed?'checked':''} onchange="setInstallStatus('${s.id}','installed',this.checked)"> Installed</label>
- <label class="status-choice"><input type="checkbox" ${st.not_installed?'checked':''} onchange="setInstallStatus('${s.id}','not_installed',this.checked)"> Not installed</label><br>
- 
- <label>Reason <select onchange="updateField('${s.id}','reason',this.value)"><option></option>${['Rock','Utility conflict','Traffic','Missing hardware','Other'].map(x=>`<option ${st.reason===x?'selected':''}>${x}</option>`).join('')}</select></label><br>
- <label><input type="checkbox" ${st.return_trip?'checked':''} onchange="updateField('${s.id}','return_trip',this.checked)"> Return trip required</label><br>
- <label>Optional photo <input type="file" accept="image/*" onchange="attachPhoto('${s.id}',this.files[0])"></label>${state.photos[s.id]?`<img class="photo-preview" src="${state.photos[s.id]}">`:``}<br>
- <textarea rows="3" class="${noteNeeded?'note-required':''}" style="width:100%" placeholder="${st.not_installed?'Required: explain why sign was not installed':'Notes'}" onchange="updateField('${s.id}','notes',this.value)">${esc(st.notes)}</textarea>
- ${noteNeeded?'<div class="note" style="color:#b00020"><b>A note is required before the next stop unlocks.</b></div>':''}
+ <div class="crew-status-actions">
+  <label class="installed-check">
+   <input type="checkbox" ${st.completed?'checked':''} onchange="setInstallStatus('${s.id}','installed',this.checked)">
+   <span>Installed</span>
+  </label>
+  <details class="more-status">
+   <summary>More…</summary>
+   <div class="more-status-panel">
+    <label class="status-choice"><input type="checkbox" ${st.not_installed?'checked':''} onchange="setInstallStatus('${s.id}','not_installed',this.checked)"> Not installed</label><br>
+    <label>Reason <select onchange="updateField('${s.id}','reason',this.value)"><option></option>${['Rock','Utility conflict','Traffic','Missing hardware','Other'].map(x=>`<option ${st.reason===x?'selected':''}>${x}</option>`).join('')}</select></label><br>
+    <label><input type="checkbox" ${st.return_trip?'checked':''} onchange="updateField('${s.id}','return_trip',this.checked)"> Return trip required</label><br>
+    <label>Optional photo <input type="file" accept="image/*" onchange="attachPhoto('${s.id}',this.files[0])"></label>${state.photos[s.id]?`<img class="photo-preview" src="${state.photos[s.id]}">`:``}<br>
+    <textarea rows="3" class="${noteNeeded?'note-required':''}" style="width:100%" placeholder="${st.not_installed?'Required: explain why sign was not installed':'Notes'}" onchange="updateField('${s.id}','notes',this.value)">${esc(st.notes)}</textarea>
+    ${noteNeeded?'<div class="note" style="color:#b00020"><b>A note is required before the next stop unlocks.</b></div>':''}
+   </div>
+  </details>
+ </div>
  </div>`;
 }
 function setInstallStatus(id,status,val){
@@ -1911,5 +1968,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.04</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.05</div>
 </body></html>
