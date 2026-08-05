@@ -181,6 +181,7 @@ html{scroll-padding-top:145px}
 <button onclick="showTab('materials',this)">Posts & Anchors</button>
 <button onclick="showTab('timeline',this)">Timeline</button>
 <button onclick="showTab('signs',this)">All Signs</button>
+<button onclick="showTab('allSigns',this)">All Signs</button>
 </nav>
 <main>
 <section id="dashboard" class="active">
@@ -347,8 +348,8 @@ html{scroll-padding-top:145px}
  <div class="card office-sign-manager">
   <div class="office-sign-manager-head">
    <div>
-    <h2>All Signs</h2>
-    <p class="note">Choose a route and roadway side. Only the selected section is rendered.</p>
+    <h2>All Signs — Office Override</h2>
+    <p class="note">Choose a route and roadway side. Admin/Supervisor edits override the crew and sync live.</p>
    </div>
    <div class="office-sign-summary" id="officeAllSignsSummary">Select a route to begin.</div>
   </div>
@@ -1583,11 +1584,73 @@ function officeOpenSignEditor(signId){
  document.getElementById("officeEditNotes").value=st.notes||"";
  modal.style.display="flex";
 }
-function officeSaveSignEditor(){
+
+function officeProgressStatusFromState(st){
+ if(st.completed)return"installed";
+ if(st.not_installed)return"not_installed";
+ if(String(st.reason||"").toLowerCase().includes("unable"))return"unable_access";
+ if(st.reason||st.return_trip)return"needs_attention";
+ return"pending";
+}
+
+async function officeSyncSignOverride(sign,st){
+ if(!V2_SESSION)return;
+ const status=officeProgressStatusFromState(st);
+
+ try{
+  if(status==="pending"){
+   const response=await fetch(
+    LIVE_SUPABASE_URL+
+    "/rest/v1/sign_user_progress?sign_id=eq."+encodeURIComponent(sign.id),
+    {
+     method:"DELETE",
+     headers:{...v2AuthHeaders(),"Prefer":"return=minimal"}
+    }
+   );
+   if(!response.ok)throw new Error(await response.text());
+   return;
+  }
+
+  const payload={
+   sign_id:sign.id,
+   sign_no:String(sign.sign_no),
+   route:sign.route,
+   roadway_side:typeof signPlanDirection==="function"
+    ?signPlanDirection(sign)
+    :(sign.traffic_direction||sign.direction||""),
+   status,
+   completed_by:V2_SESSION.user.id,
+   completed_by_name:V2_PROFILE?.full_name||"Office",
+   completed_at:new Date().toISOString(),
+   notes:st.notes||"",
+   out_of_sequence:false,
+   updated_at:new Date().toISOString()
+  };
+
+  const response=await fetch(
+   LIVE_SUPABASE_URL+"/rest/v1/sign_user_progress?on_conflict=sign_id",
+   {
+    method:"POST",
+    headers:{
+     ...v2AuthHeaders(),
+     "Prefer":"resolution=merge-duplicates,return=minimal"
+    },
+    body:JSON.stringify(payload)
+   }
+  );
+  if(!response.ok)throw new Error(await response.text());
+ }catch(error){
+  console.error(error);
+  throw new Error("Office status saved locally, but live override failed: "+error.message);
+ }
+}
+
+async function officeSaveSignEditor(){
  const modal=document.getElementById("officeSignEditModal");
  const signId=modal?.dataset.signId;
  const sign=PROJECT.signs.find(s=>s.id===signId);
  if(!sign)return;
+
  const status=document.getElementById("officeEditStatus").value;
  const notes=document.getElementById("officeEditNotes").value.trim();
  const st=state.signs?.[signId]||{};
@@ -1598,14 +1661,37 @@ function officeSaveSignEditor(){
  st.notes=notes;
  st.completed_at=status==="pending"?"":new Date().toISOString();
  st.completed_by=status==="pending"?"":(V2_PROFILE?.full_name||"Office");
+
  if(status==="pending"){
-  st.completed=false;st.not_installed=false;st.reason="";st.return_trip=false;
+  st.completed=false;
+  st.not_installed=false;
+  st.reason="";
+  st.return_trip=false;
  }
+
  state.signs[signId]=st;
  save();
- modal.style.display="none";
- officeRenderAllSigns();
- if(typeof renderDashboard==="function")renderDashboard();
+
+ const saveButton=modal.querySelector(".primary");
+ if(saveButton){
+  saveButton.disabled=true;
+  saveButton.textContent="Saving…";
+ }
+
+ try{
+  await officeSyncSignOverride(sign,st);
+  modal.style.display="none";
+  officeRenderAllSigns();
+  if(typeof renderDashboard==="function")renderDashboard();
+  alert(`Sign ${sign.sign_no} updated. The Office override is now live for the crew.`);
+ }catch(error){
+  alert(error.message);
+ }finally{
+  if(saveButton){
+   saveButton.disabled=false;
+   saveButton.textContent="Save";
+  }
+ }
 }
 
 
@@ -1625,5 +1711,5 @@ function officeResetIA1NBStatuses(){
 }
 
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.1 · Build 2026.08.04.03</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.1 · Build 2026.08.05.04</div>
 </body></html>
