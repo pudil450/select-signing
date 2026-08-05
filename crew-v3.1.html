@@ -175,6 +175,19 @@ html{scroll-padding-top:155px}
 }
 .sign-extra-details div+div{margin-top:4px}
 
+
+.office-override-badge{
+ display:inline-block;
+ margin-left:7px;
+ padding:3px 7px;
+ border-radius:999px;
+ background:#171717;
+ color:#ffff00;
+ border:1px solid #ffff00;
+ font-size:11px;
+ font-weight:900;
+}
+
 </style>
 </head>
 <body>
@@ -414,6 +427,51 @@ function initializeIA1NorthboundStatus(force=false){
  return true;
 }
 
+
+
+async function loadOfficeSignOverrides(){
+ if(!V2_SESSION)return 0;
+
+ try{
+  const response=await fetch(
+   LIVE_SUPABASE_URL+
+   "/rest/v1/sign_user_progress"+
+   "?select=sign_id,status,completed_by_name,completed_at,notes,updated_at",
+   {headers:v2AuthHeaders()}
+  );
+  if(!response.ok)throw new Error(await response.text());
+
+  const rows=await response.json();
+
+  for(const row of rows){
+   const sign=PROJECT.signs.find(s=>s.id===row.sign_id);
+   if(!sign)continue;
+
+   const current=state.signs[row.sign_id]||{};
+   state.signs[row.sign_id]={
+    ...current,
+    completed:row.status==="installed",
+    not_installed:row.status==="not_installed",
+    reason:row.status==="needs_attention"
+     ?"Needs attention"
+     :row.status==="unable_access"
+      ?"Unable to access"
+      :"",
+    notes:row.notes||current.notes||"",
+    completed_at:row.completed_at||"",
+    completed_by:row.completed_by_name||"Office",
+    office_override:true,
+    office_override_updated_at:row.updated_at||row.completed_at||""
+   };
+  }
+
+  localStorage.setItem(KEY,JSON.stringify(state));
+  return rows.length;
+ }catch(error){
+  console.error("Could not load Office sign overrides.",error);
+  return 0;
+ }
+}
 
 function v3Toast(message){
  const old=document.querySelector(".v3-toast");if(old)old.remove();
@@ -763,6 +821,7 @@ async function v2ReleaseRoute(showMessage=true){
  }
 }
 async function v2LoadMyClaim(){
+ await loadOfficeSignOverrides();
  const r=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+"&status=eq.active&select=*&limit=1",{headers:v2AuthHeaders()});
  if(!r.ok)return;
  const rows=await r.json();if(!rows.length)return;
@@ -1566,7 +1625,7 @@ function renderFieldLocations(list){
    return `<div class="stop-card locked-stop"><h3>Stop ${idx+1} — ${esc(l.route)} MP ${l.milepost??''}</h3>
     <p><b>${esc(l.label)}</b></p>
     <div class="locked-message">Resolve every sign at the current stop before opening this stop.</div>
-    ${signs.map(s=>`<div class="sign-row locked-sign-row"><b>Sign ${esc(s.sign_no)}</b> ${anchorDotHtml(s,true)} · ${esc(s.description)}${s.sign_size?` · ${esc(s.sign_size)}`:''}<br><small><b>Face:</b> ${esc(s.direction||"Not listed")} · <b>Remarks:</b> ${esc(s.remarks||"None")}</small></div>`).join('')}</div>`;
+    ${signs.map(s=>`<div class="sign-row locked-sign-row"><b>Sign ${esc(s.sign_no)}</b> ${anchorDotHtml(s,true)} · ${esc(s.description)}${s.sign_size?` · ${esc(s.sign_size)}`:''}<br><small><b>Face:</b> ${esc(s.direction||"Not listed")} · <b>Plan Remarks (Excel DW):</b> ${esc(s.remarks||"None")}</small></div>`).join('')}</div>`;
   }
 
   const stopResolved=signs.every(s=>signState(s.id).completed||signState(s.id).not_installed);
@@ -1643,12 +1702,12 @@ function fieldSignHtml(s){
  </div>
  <div class="sign-extra-details">
   <div><b>Sign face direction:</b> ${esc(s.direction||"Not listed")}</div>
-  <div><b>Remarks:</b> ${esc(s.remarks||"None")}</div>
+  <div><b>Plan Remarks (Excel DW):</b> ${esc(s.remarks||"None")}</div>
  </div>
  <p class="note"><b>Sign face direction:</b> ${esc(s.direction||'Not listed')}<br>
  <b>Posts:</b> ${s.left_post_length!==null&&s.left_post_length!==undefined?`Left ${esc(s.left_post_length)} ft`:''}${s.right_post_length!==null&&s.right_post_length!==undefined?` · Right ${esc(s.right_post_length)} ft`:(s.post_configuration==='Single post'?' · Single post':'')}<br>
  <b>Installation dimension:</b> ${esc(s.installation_dimension??'')}<br>
- <b>Status:</b> ${esc(signStatusText(s.id))}</p>
+ <b>Status:</b> ${esc(signStatusText(s.id))}${signState(s.id).office_override?' <span class="office-override-badge">OFFICE OVERRIDE</span>':''}</p>
  <label class="status-choice"><input type="checkbox" ${st.completed?'checked':''} onchange="setInstallStatus('${s.id}','installed',this.checked)"> Installed</label>
  <label class="status-choice"><input type="checkbox" ${st.not_installed?'checked':''} onchange="setInstallStatus('${s.id}','not_installed',this.checked)"> Not installed</label><br>
  
@@ -1796,7 +1855,7 @@ function renderPallet(){
    <td><div class="load-sign-id">${anchorDotHtml(s)} <b>Sign ${esc(s.sign_no)}</b></div>${i<20?mutcdImageHtml(s,true):`<div class="mutcd-image-fallback compact">${esc(s.mutcd||"")}</div>`}</td>
    <td><b>${esc(s.mutcd||'')}</b><br>${esc(s.description||'')}</td>
    <td>${esc(sizeText(s))}</td>
-   <td>${esc(s.anchor_type||'None')}<br><b>Face:</b> ${esc(s.direction||'Not listed')}<br><b>Remarks:</b> ${esc(s.remarks||'None')}</td>
+   <td>${esc(s.anchor_type||'None')}<br><b>Face:</b> ${esc(s.direction||'Not listed')}<br><b>Plan Remarks (Excel DW):</b> ${esc(s.remarks||'None')}</td>
   </tr>`).join('')||'<tr><td colspan="5">No signs match the selected filters.</td></tr>';
  const palletNote=document.getElementById('palletPerformanceNote');
  if(palletNote)palletNote.textContent=rows.length>20?`Showing image previews for the first 20 of ${rows.length} signs. All signs remain in the load list.`:'';
@@ -1844,6 +1903,7 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  try{await v2LoadProfile()}catch(e){localStorage.removeItem("select-signing-v2-session");v2LoginOverlay();return}
  v2InstallCrewHeader();
  initializeIA1NorthboundStatus();
+ await loadOfficeSignOverrides();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
  if(status)status.textContent=count?`Plan-order routing active · roadway-side blocks · ${count} audited signs`:"Plan-order routing fallback active";
@@ -1851,5 +1911,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.04.03</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.04</div>
 </body></html>
