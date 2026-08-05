@@ -529,7 +529,7 @@ html{scroll-padding-top:155px}
 
 <script>
 
-const IA1_NB_STATUS_INIT_KEY="select-signing-ia1-nb-initialized-v1";
+const IA1_NB_STATUS_INIT_KEY="select-signing-ia1-nb-initialized-v2";
 
 function initializeIA1NorthboundStatus(force=false){
  if(!force && localStorage.getItem(IA1_NB_STATUS_INIT_KEY)==="yes")return false;
@@ -549,7 +549,9 @@ function initializeIA1NorthboundStatus(force=false){
     reason:"",
     return_trip:false,
     completed_at:"",
-    completed_by:""
+    completed_by:"",
+    office_override:false,
+    office_override_updated_at:""
    };
   }else{
    state.signs[sign.id]={
@@ -968,6 +970,7 @@ async function v2ReleaseRoute(showMessage=true){
 }
 async function v2LoadMyClaim(){
  await loadOfficeSignOverrides();
+ initializeIA1NorthboundStatus();
  await loadExtraWork();
  const r=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+"&status=eq.active&select=*&limit=1",{headers:v2AuthHeaders()});
  if(!r.ok)return;
@@ -2303,8 +2306,8 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  if(!v2LoadStoredSession()){v2LoginOverlay();return}
  try{await v2LoadProfile()}catch(e){localStorage.removeItem("select-signing-v2-session");v2LoginOverlay();return}
  v2InstallCrewHeader();
- initializeIA1NorthboundStatus();
  await loadOfficeSignOverrides();
+ initializeIA1NorthboundStatus();
  await loadExtraWork();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
@@ -2313,5 +2316,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.12</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.13</div>
 </body></html>
