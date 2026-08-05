@@ -264,7 +264,7 @@ html{scroll-padding-top:155px}
 }
 .extra-work-fields{
  display:grid;
- grid-template-columns:repeat(3,minmax(150px,1fr));
+ grid-template-columns:repeat(4,minmax(140px,1fr));
  gap:10px;
  padding:13px;
 }
@@ -1879,12 +1879,19 @@ function mutcdImageHtml(sign,compact=false){
 
 
 let EXTRA_WORK_BY_SIGN={};
+const EXTRA_POST_SIZES=[...new Set(
+ PROJECT.signs.flatMap(sign=>[sign.left_post_length,sign.right_post_length])
+  .filter(value=>value!==null&&value!==undefined&&value!=="")
+  .map(Number)
+  .filter(Number.isFinite)
+)].sort((a,b)=>a-b);
 
 function extraWorkForSign(signId){
  return EXTRA_WORK_BY_SIGN[signId]||{
   sign_id:signId,
   added_anchor_type:"",
-  added_post_lf:"",
+  added_post_size:"",
+  added_post_qty:"",
   remove_assembly_qty:"",
   notes:""
  };
@@ -1893,7 +1900,7 @@ function extraWorkForSign(signId){
 function hasExtraWork(signId){
  const row=extraWorkForSign(signId);
  return !!row.added_anchor_type||
-  Number(row.added_post_lf)>0||
+  (Number(row.added_post_size)>0&&Number(row.added_post_qty)>0)||
   Number(row.remove_assembly_qty)>0||
   !!String(row.notes||"").trim();
 }
@@ -1904,7 +1911,7 @@ async function loadExtraWork(){
   const response=await fetch(
    LIVE_SUPABASE_URL+
    "/rest/v1/sign_extra_work"+
-   "?select=sign_id,sign_no,route,added_anchor_type,added_post_lf,remove_assembly_qty,notes,entered_by_name,updated_at",
+   "?select=sign_id,sign_no,route,added_anchor_type,added_post_size,added_post_qty,remove_assembly_qty,notes,entered_by_name,updated_at",
    {headers:v2AuthHeaders()}
   );
   if(!response.ok)throw new Error(await response.text());
@@ -1931,7 +1938,8 @@ async function saveExtraWork(signId){
 
  const row=extraWorkForSign(signId);
  const anchor=String(row.added_anchor_type||"");
- const postLf=Number(row.added_post_lf||0);
+ const postSize=Number(row.added_post_size||0);
+ const postQty=Number(row.added_post_qty||0);
  const removeQty=Number(row.remove_assembly_qty||0);
  const notes=String(row.notes||"").trim();
 
@@ -1939,11 +1947,15 @@ async function saveExtraWork(signId){
   alert("Added anchor must be Soil or Slip-Base.");
   return;
  }
- if(postLf<0 || removeQty<0){
+ if(postSize<0 || postQty<0 || removeQty<0){
   alert("Extra-work quantities cannot be negative.");
   return;
  }
- if(!anchor && postLf<=0 && removeQty<=0 && !notes){
+ if((postSize>0&&postQty<=0)||(postQty>0&&postSize<=0)){
+  alert("Choose a post size and enter a quantity.");
+  return;
+ }
+ if(!anchor && !(postSize>0&&postQty>0) && removeQty<=0 && !notes){
   alert("Enter at least one extra-work item before saving.");
   return;
  }
@@ -1956,7 +1968,8 @@ async function saveExtraWork(signId){
    ?signPlanDirection(sign)
    :(sign.traffic_direction||sign.direction||""),
   added_anchor_type:anchor||null,
-  added_post_lf:postLf||0,
+  added_post_size:postSize||null,
+  added_post_qty:Math.trunc(postQty)||0,
   remove_assembly_qty:Math.trunc(removeQty)||0,
   notes,
   entered_by:V2_SESSION?.user?.id||null,
@@ -2031,11 +2044,18 @@ function extraWorkHtml(sign){
     </select>
    </label>
 
-   <label>Added post — linear feet
-    <input type="number" min="0" step="0.1"
-     value="${esc(row.added_post_lf??"")}"
-     placeholder="Example: 28"
-     onchange="updateExtraWorkDraft('${sign.id}','added_post_lf',this.value)">
+   <label>Added post size
+    <select onchange="updateExtraWorkDraft('${sign.id}','added_post_size',this.value)">
+     <option value="">Select size</option>
+     ${EXTRA_POST_SIZES.map(size=>`<option value="${size}" ${Number(row.added_post_size)===Number(size)?"selected":""}>${size} ft</option>`).join("")}
+    </select>
+   </label>
+
+   <label>Added post quantity
+    <input type="number" min="0" step="1"
+     value="${esc(row.added_post_qty??"")}"
+     placeholder="Example: 2"
+     onchange="updateExtraWorkDraft('${sign.id}','added_post_qty',this.value)">
    </label>
 
    <label>Remove assembly — quantity
@@ -2293,5 +2313,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.11</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.12</div>
 </body></html>
