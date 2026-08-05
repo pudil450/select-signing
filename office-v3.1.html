@@ -125,100 +125,116 @@ input,select,textarea{border:1px solid #cfd4da;border-radius:8px;background:whit
 }
 
 
-.anchor-dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:middle;margin:0 5px 2px 2px;border:2px solid #fff;box-shadow:0 0 0 1px #555}
-.anchor-slip{background:#ff8000}
-.anchor-soil{background:#0000ff}
-.anchor-none{background:#9ca3af}
-.anchor-dot-label{font-size:12px;font-weight:800;color:#4b5563;margin-right:6px}
-.anchor-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:8px 0 14px;padding:9px 11px;background:#fff;border:1px solid #d1d5db;border-radius:9px;font-size:13px}
-.anchor-legend span{white-space:nowrap}
-.sign-heading{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px;font-size:18px}
-.sign-visual-row{display:grid;grid-template-columns:145px minmax(0,1fr);gap:14px;align-items:center;margin:8px 0 12px}
-.mutcd-image-wrap{width:140px;height:140px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border:1px solid #d1d5db;border-radius:12px;padding:8px}
-.mutcd-image-wrap img{max-width:100%;max-height:100%;display:block}
-.mutcd-image-fallback{width:140px;height:100px;align-items:center;justify-content:center;text-align:center;background:#f3f4f6;border:2px dashed #9ca3af;border-radius:10px;padding:8px;font-weight:900;color:#4b5563}
-.mutcd-image-wrap.compact{width:74px;height:74px;padding:4px;margin-top:5px}
-.mutcd-image-wrap.compact .mutcd-image-fallback,.mutcd-image-fallback.compact{width:68px;height:54px;font-size:10px}
-.sign-description{font-size:17px;line-height:1.35}
-.load-sign-id{white-space:nowrap}
-.locked-sign-row{padding:8px 0}
-#palletRows td{vertical-align:middle}
-@media(max-width:650px){
- .sign-visual-row{grid-template-columns:105px minmax(0,1fr)}
- .mutcd-image-wrap{width:100px;height:100px}
- .mutcd-image-fallback{width:100px;height:76px;font-size:12px}
- .sign-heading{font-size:16px}
- .anchor-legend{gap:8px}
+.office-sign-manager{scroll-margin-top:145px}
+.office-sign-manager-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.office-sign-summary{background:#171717;color:white;border-left:6px solid #f97316;padding:10px 14px;border-radius:9px;font-weight:800}
+.office-sign-filters{display:grid!important;grid-template-columns:repeat(5,minmax(160px,1fr));gap:10px!important;align-items:end}
+.office-sign-filters label{font-weight:800}
+.office-sign-filters select,.office-sign-filters input{width:100%;margin-top:5px}
+.office-anchor-legend{display:flex;gap:16px;flex-wrap:wrap;padding:10px 12px;background:#f8fafc;border:1px solid #d1d5db;border-radius:9px;margin:12px 0;font-size:13px;font-weight:800}
+.office-anchor-dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:middle;margin:0 5px 2px 0;border:2px solid white;box-shadow:0 0 0 1px #555}
+.office-anchor-slip{background:#ff8000}
+.office-anchor-soil{background:#0000ff}
+.office-anchor-none{background:#9ca3af}
+.office-route-section{border:1px solid #d1d5db;border-radius:12px;margin:12px 0;overflow:hidden;background:white}
+.office-route-section summary{cursor:pointer;padding:15px 17px;background:#171717;color:white;font-size:17px;font-weight:900;list-style:none}
+.office-route-section summary::-webkit-details-marker{display:none}
+.office-route-section summary:before{content:"▶";display:inline-block;margin-right:9px;color:#f97316}
+.office-route-section[open] summary:before{content:"▼"}
+.office-sign-table-wrap{overflow:auto;max-height:65vh}
+.office-sign-table{width:100%;border-collapse:collapse;min-width:980px}
+.office-sign-table th{position:sticky;top:0;background:#f97316;color:#111;z-index:2}
+.office-sign-table th,.office-sign-table td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;vertical-align:top}
+.office-sign-table tr:hover{background:#fff7ed}
+.office-status-pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:900;background:#e5e7eb}
+.office-status-pill.complete{background:#dcfce7;color:#166534}
+.office-status-pill.not-installed{background:#fee2e2;color:#991b1b}
+.office-status-pill.attention{background:#fef3c7;color:#92400e}
+.office-sign-actions{display:flex;gap:6px;flex-wrap:wrap}
+.office-sign-actions button{padding:7px 9px;font-size:12px}
+.office-edit-modal{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;padding:18px;z-index:10000}
+.office-edit-card{background:white;width:min(460px,100%);padding:22px;border-radius:15px;border-top:8px solid #f97316;box-shadow:0 20px 70px #0009}
+.office-edit-card label{display:block;font-weight:800;margin:12px 0}
+.office-edit-card select,.office-edit-card textarea{width:100%;margin-top:5px}
+html{scroll-padding-top:145px}
+@media(max-width:900px){
+ .office-sign-filters{grid-template-columns:1fr 1fr!important}
 }
-
-
-.route-window-note{text-align:center;border:2px dashed #f97316!important;background:#fff7ed!important}
-.route-window-note button{margin-top:9px;background:#f97316;color:#111;font-weight:900}
-
-
-html{scroll-padding-top:155px}
-.tab,.stop-card,.first-stop,#firstStopCard,#fieldStops{scroll-margin-top:155px}
-#field.active{padding-top:8px}
-@media(max-width:760px){
- html{scroll-padding-top:135px}
- .tab,.stop-card,.first-stop,#firstStopCard,#fieldStops{scroll-margin-top:135px}
+@media(max-width:600px){
+ .office-sign-filters{grid-template-columns:1fr!important}
+ .office-sign-manager-head{display:block}
 }
 
 </style>
 </head>
 <body>
 <header>
-<div><h1>Select Signing — Crew App</h1><small id="projectTitle"></small><span class="badge" style="margin-left:8px">CREW V3.1</span><div id="routeAuditStatus" style="font-size:12px;margin-top:5px;opacity:.9">Roadway-side audit: loading…</div></div>
-<div><label style="margin-right:8px">Crew <input id="crewName" placeholder="Crew name or code" style="width:160px" onchange="setCrew(this.value)"></label><button class="primary" onclick="loadLiveAssignment()">Get Assignment</button><button onclick="document.getElementById('assignmentInput').click()">Load backup file</button><input id="assignmentInput" class="hidden" type="file" accept=".json" onchange="importAssignment(event)"><button onclick="exportBackup()">Export Backup</button> <button onclick="document.getElementById('backupInput').click()">Import Backup</button><input id="backupInput" class="hidden" type="file" accept=".json" onchange="importBackup(event)"></div>
+<div><h1>SELECT SIGNING — OPERATIONS</h1><small id="projectTitle"></small><span class="badge" style="margin-left:8px">OFFICE V3.1</span><div id="routeAuditStatus" style="font-size:12px;margin-top:5px;opacity:.9">Roadway-side audit: loading…</div></div>
+<div><label style="margin-right:8px">Crew <input id="crewName" placeholder="Assigned crew" style="width:130px" onchange="setCrew(this.value)"></label><button onclick="document.getElementById('assignmentInput').click()">Load Assignment</button><input id="assignmentInput" class="hidden" type="file" accept=".json" onchange="importAssignment(event)"><button onclick="exportBackup()">Export Backup</button> <button onclick="document.getElementById('backupInput').click()">Import Backup</button><input id="backupInput" class="hidden" type="file" accept=".json" onchange="importBackup(event)"></div>
 </header>
 <nav>
-<button class="active" onclick="showTab('dashboard',this)">Current Assignment</button>
-<button onclick="showTab('pallet',this)">Load Truck</button>
-<button onclick="showTab('field',this)">Continue Work</button>
+<button class="active" onclick="showTab('dashboard',this)">Dashboard</button>
+<button onclick="showTab('assignments',this)">Crew Assignments</button>
+<button onclick="showTab('planner',this)">Daily Planner</button>
+<button onclick="showTab('field',this)">Field Preview</button>
+<button onclick="showTab('pallet',this)">Pallet Loading</button>
 <button onclick="showTab('materials',this)">Posts & Anchors</button>
-<button onclick="showTab('requests',this)">Request Materials</button>
+<button onclick="showTab('timeline',this)">Timeline</button>
+<button onclick="showTab('signs',this)">All Signs</button>
 </nav>
 <main>
-
-<div id="v3RouteDashboard" class="v3-route-dashboard">
- <h2 id="v3RouteTitle">No active route</h2>
- <div id="v3RouteMeta" class="v3-route-meta">Choose a route to begin.</div>
- <div class="v3-route-actions">
-  <button class="load" onclick="v3OpenCurrentRoute()">Go to Route</button>
-  <button class="load" onclick="v3OpenPalletLoading()">Pallet Loading</button>
-  <button class="load" onclick="v3OpenPostsAnchors()">Posts & Anchors</button>
-  <button class="dark" onclick="v2OpenRouteChooser()">Start / Change Route</button>
- </div>
-</div>
-
 <section id="dashboard" class="active">
-<div id="noAssignmentCard" class="card">
-<h2>No route assignment loaded</h2>
-<p>Use <b>Load Assignment</b> above to open the route assignment sent by the office.</p>
+<div class="cards" id="dashboardCards"></div>
+<div class="card" style="margin-top:12px"><h3>Project progress</h3><div class="progress"><div id="progressBar"></div></div><p id="progressText"></p></div>
+<div class="card" style="margin-top:12px"><h3>Route summary</h3><div id="routeSummary"></div></div><div class="card" style="margin-top:12px"><h3>Active signed-in users</h3><div id="v2RouteBoard"></div></div><div class="card" style="margin-top:12px"><h3>Assigned crews</h3><div id="crewAssignmentDashboard"></div></div>
+</section>
+
+
+<section id="assignments">
+<h2>Crew Management & Route Assignments</h2>
+
+<div class="card">
+<h3>Saved Crews</h3>
+<div class="controls">
+<label>Crew name <input id="savedCrewName" placeholder="Crew 1"></label>
+<label>Crew lead <input id="savedCrewLead" placeholder="Lead name"></label>
+<label>Lead email <input id="savedCrewEmail" type="email" placeholder="lead@company.com"></label>
+<label>Crew members <input id="savedCrewMembers" placeholder="Name 1, Name 2, Name 3" style="min-width:280px"></label>
+<button class="primary" onclick="saveCrewProfile()">Save crew</button>
+<button onclick="clearCrewProfileForm()">Clear</button>
 </div>
-<div id="currentAssignmentHome" style="display:none">
- <div class="card">
-  <div class="note">CURRENT ASSIGNMENT</div>
-  <h2 id="homeCrewName"></h2>
-  <h1 id="homeRoute"></h1>
-  <p id="homePeople"></p>
-  <div class="progress"><div id="homeProgressBar"></div></div>
-  <h3 id="homeProgressText"></h3>
-  <p id="homeLastCompleted"></p>
-  <button class="primary" style="font-size:1.2rem;padding:14px 24px" onclick="continueAssignment()">CONTINUE WORK</button>
-  <button class="danger" style="font-size:1.05rem;padding:12px 20px" onclick="endWorkDay()">END WORKDAY</button>
- </div>
- <div class="card" style="margin-top:12px">
-  <h2>Remaining Load</h2>
-  <p class="note">Calculated from unresolved signs on the assigned route.</p>
-  <div id="homeRemainingLoad"></div>
-  <button onclick="openLoadTruck()">Open Load Truck</button>
- </div>
- <div id="routeCompleteCard" class="card" style="display:none;margin-top:12px">
-  <h2>Route Complete</h2><p id="routeCompleteText"></p>
-  <button onclick="exportCSV()">Generate Completion Report</button>
- </div>
+<p class="note">Save each regular crew once. Saved leads become available in the assignment dropdown.</p>
+<div id="savedCrewList"></div>
 </div>
+
+<div class="card" style="margin-top:12px">
+<h3>Assign Route</h3>
+<div class="controls">
+<label>Saved crew <select id="assignCrewSelect" onchange="applySavedCrewToAssignment()" style="min-width:190px"></select></label>
+<label>Crew name <input id="assignCrewName" placeholder="Crew 1"></label>
+<label>Crew lead <select id="assignLead" onchange="applyLeadToAssignment()" style="min-width:190px"></select></label>
+<label>Lead email <input id="assignEmail" type="email" placeholder="lead@company.com"></label>
+<label>Crew members <input id="assignMembers" placeholder="Name 1, Name 2, Name 3" style="min-width:260px"></label>
+<label>Office notification email <input id="assignOfficeEmail" type="email" placeholder="office@company.com"></label>
+<label>Route <select id="assignRoute" onchange="refreshAssignmentDirections()"></select></label>
+<label>Plan direction <select id="assignDirection" onchange="refreshAssignmentStartItems()"></select></label>
+<label>Starting sign/item <select id="assignStartItem" style="min-width:300px"></select></label>
+<button class="primary" onclick="saveAssignment()">Assign route</button>
+<button onclick="refreshLiveProgress()">Refresh live progress</button>
+</div>
+<p class="note">The office email is included in the assignment so crew material requests can send a notification immediately.</p>
+</div>
+
+<div class="card" style="margin-top:12px">
+<h3>Crew Requests <span id="crewRequestBadge" class="badge">0 new</span></h3>
+<div class="controls">
+<label>Import request file <input id="crewRequestFile" type="file" accept=".json,application/json" onchange="importCrewRequestFile(this.files[0])"></label>
+<button onclick="markAllRequestsRead()">Mark all read</button>
+</div>
+<div id="crewRequestList"></div>
+</div>
+
+<div id="assignmentList"></div>
 </section>
 
 <section id="planner">
@@ -305,13 +321,6 @@ html{scroll-padding-top:155px}
 <button class="primary" onclick="renderMaterials()">Refresh quantities</button>
 <button onclick="window.print()">Print</button>
 </div>
-
-<div class="anchor-legend">
- <b>Anchor key:</b>
- <span><i class="anchor-dot anchor-slip"></i> Slip-Base (Earth orange)</span>
- <span><i class="anchor-dot anchor-soil"></i> Soil (Earth blue)</span>
- <span><i class="anchor-dot anchor-none"></i> No anchor</span>
-</div>
 <div id="materialsOutput"></div>
 </section>
 
@@ -334,30 +343,55 @@ html{scroll-padding-top:155px}
 </div>
 </section>
 
-<section id="requests">
-<h2>Request Materials / Send Comment</h2>
-<div class="card">
-<p class="note">Use this for hardware, posts, anchors, sign faces, equipment, or anything the office needs to know.</p>
-<div class="controls">
-<label>Request type
-<select id="requestType">
-<option>Hardware</option><option>Posts</option><option>Anchors</option><option>Sign Face</option><option>Equipment</option><option>Traffic Control</option><option>Other</option>
-</select></label>
-<label>Urgency
-<select id="requestUrgency"><option>Normal</option><option>Needed today</option><option>Work stopped</option></select></label>
-<label>Quantity <input id="requestQuantity" type="number" min="0" placeholder="0"></label>
-<label>Sign/item <input id="requestSignItem" placeholder="Current sign or item number"></label>
-</div>
-<label>Comment<br><textarea id="requestComment" rows="5" style="width:100%" placeholder="Describe exactly what is needed and why."></textarea></label><br>
-<button class="primary" onclick="submitCrewRequest()">Send request to office</button>
-<button onclick="downloadCrewRequests()">Download request log</button>
-</div>
-<div class="card" style="margin-top:12px">
-<h3>Sent Requests</h3>
-<div id="crewRequestHistory"></div>
-</div>
-</section>
+<section id="allSigns" class="tab">
+ <div class="card office-sign-manager">
+  <div class="office-sign-manager-head">
+   <div>
+    <h2>All Signs</h2>
+    <p class="note">Choose a route and roadway side. Only the selected section is rendered.</p>
+   </div>
+   <div class="office-sign-summary" id="officeAllSignsSummary">Select a route to begin.</div>
+  </div>
 
+  <div class="controls office-sign-filters">
+   <label>Route
+    <select id="officeSignsRoute" onchange="officePopulateDirections();officeRenderAllSigns()"></select>
+   </label>
+   <label>Roadway side
+    <select id="officeSignsDirection" onchange="officeRenderAllSigns()"></select>
+   </label>
+   <label>Anchor
+    <select id="officeSignsAnchor" onchange="officeRenderAllSigns()">
+     <option value="all">All signs</option>
+     <option value="anchors">All anchors — Soil + Slip-Base</option>
+     <option value="none">No anchors</option>
+     <option value="Soil">Soil anchors only</option>
+     <option value="Slip-Base">Slip-Base anchors only</option>
+    </select>
+   </label>
+   <label>Status
+    <select id="officeSignsStatus" onchange="officeRenderAllSigns()">
+     <option value="all">All statuses</option>
+     <option value="pending">Pending</option>
+     <option value="complete">Installed</option>
+     <option value="not_installed">Not installed</option>
+     <option value="attention">Needs attention</option>
+    </select>
+   </label>
+   <label>Search
+    <input id="officeSignsSearch" placeholder="Sign number or description" oninput="officeRenderAllSigns()">
+   </label>
+  </div>
+
+  <div class="office-anchor-legend">
+   <span><i class="office-anchor-dot office-anchor-slip"></i> Slip-Base (Earth orange)</span>
+   <span><i class="office-anchor-dot office-anchor-soil"></i> Soil (Earth blue)</span>
+   <span><i class="office-anchor-dot office-anchor-none"></i> No anchor</span>
+  </div>
+
+  <div id="officeAllSignsList"></div>
+ </div>
+</section>
 </main>
 
 <script>
@@ -381,9 +415,6 @@ function v3ApplyCurrentRouteToLoadScreens(){
  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value};
  set("palletRouteFilter",a.route);set("palletDirectionFilter",a.direction);
  set("materialsRouteFilter",a.route);set("materialsDirectionFilter",a.direction);
- set("fieldAnchorFilter",a.work_filter||"all");
- const palletWork=(a.work_filter==="Soil"||a.work_filter==="Slip-Base"||a.work_filter==="anchors"||a.work_filter==="none")?a.work_filter:"all";
- set("palletAnchorFilter",palletWork);
 }
 function v3OpenPalletLoading(){
  if(!state.active_assignment){alert("Start a route first.");return}
@@ -397,25 +428,11 @@ function v3OpenPostsAnchors(){
  if(typeof renderMaterials==="function")renderMaterials();
  window.scrollTo({top:0,behavior:"smooth"});
 }
-
-function scrollCurrentRouteIntoView(){
- setTimeout(()=>{
-  const target=document.getElementById("firstStopCard")||
-               document.querySelector("#fieldStops .stop-card")||
-               document.getElementById("field");
-  if(!target)return;
-  const mobile=window.matchMedia("(max-width:760px)").matches;
-  const offset=mobile?135:155;
-  const top=target.getBoundingClientRect().top+window.scrollY-offset;
-  window.scrollTo({top:Math.max(0,top),behavior:"smooth"});
- },120);
-}
-
 function v3OpenCurrentRoute(){
  if(!state.active_assignment){alert("Start a route first.");return}
  v3ShowTab("field");
  if(typeof loadFieldByFilters==="function")loadFieldByFilters();
- scrollCurrentRouteIntoView();
+ window.scrollTo({top:0,behavior:"smooth"});
 }
 function v3UpdateRouteDashboard(){
  const a=state.active_assignment;
@@ -431,8 +448,7 @@ function v3UpdateRouteDashboard(){
  }
  box.classList.remove("no-route");
  title.textContent=`${a.route} ${a.direction}`;
- const workLabels={all:"All signs",anchors:"All anchors",none:"No anchors",Soil:"Soil anchors only","Slip-Base":"Slip-base anchors only"};
- meta.textContent=`${V2_PROFILE?.full_name||a.crew_name} · ${workLabels[a.work_filter||"all"]||a.work_filter} · Starting at ${a.start_item_label||"Beginning"}`;
+ meta.textContent=`${V2_PROFILE?.full_name||a.crew_name} · Starting at ${a.start_item_label||"Beginning"}`;
 }
 
 
@@ -498,224 +514,20 @@ function v2LoginOverlay(){
 }
 
 
-function v2InstallCrewHeader(){
+function v2InstallOfficeHeader(){
  const header=document.querySelector("header>div:last-child");
  if(!header)return;
  header.innerHTML=`<b>${esc(V2_PROFILE.full_name)}</b>
  <span class="badge">${esc(V2_PROFILE.role)}</span>
- <button class="primary" onclick="v2OpenRouteChooser()">Start / Change Route</button>
- <button onclick="v2ReleaseRoute()">Release Route</button>
+ <button onclick="v2RefreshClaims()">Refresh users</button>
  <button onclick="v2SignOut()">Sign out</button>`;
 }
-
-function v2OpenRouteChooser(){
- let modal=document.getElementById("v2RouteModal");
- if(!modal){
-  modal=document.createElement("div");modal.id="v2RouteModal";modal.className="v2-modal";
-  modal.innerHTML=`<div class="v2-modal-card"><h2>Choose your route</h2>
-   <label>Route<select id="v2Route"></select></label>
-   <label>Roadway side<select id="v2Direction"></select></label>
-   <label>Work type
-    <select id="v2WorkType">
-     <option value="all">All signs</option>
-     <option value="anchors">All anchors</option>
-     <option value="none">No anchors</option>
-     <option value="Soil">Soil anchors only</option>
-     <option value="Slip-Base">Slip-base anchors only</option>
-    </select>
-   </label>
-   <label>Start mode
-    <select id="v2StartMode" onchange="v2FillStartSigns()">
-     <option value="beginning">Beginning of route</option>
-     <option value="resume">Resume first unresolved</option>
-     <option value="specific">Choose specific sign</option>
-    </select>
-   </label>
-   <label id="v2StartSignLabel">Start at sign<select id="v2StartSign"></select></label>
-   <div id="v2ClaimStatus" class="note"></div>
-   <button class="primary" id="v2StartWorkingBtn" onclick="v2ClaimRoute()">Start Working</button>
-   <button onclick="document.getElementById('v2RouteModal').style.display='none'">Cancel</button>
-  </div>`;
-  document.body.appendChild(modal);
-  document.getElementById("v2Route").onchange=v2FillDirections;
-  document.getElementById("v2Direction").onchange=v2FillStartSigns;
- }
- const routes=[...new Set(PROJECT.signs.map(s=>s.route))].sort();
- document.getElementById("v2Route").innerHTML=routes.map(r=>`<option>${esc(r)}</option>`).join("");
- const startMode=document.getElementById("v2StartMode");if(startMode)startMode.value="beginning";
- v2FillDirections();modal.style.display="flex";v2RefreshClaims();
-}
-
-function v2FillDirections(){
- const route=document.getElementById("v2Route").value;
- const dirs=canonicalDirections(route);
- document.getElementById("v2Direction").innerHTML=dirs.map(d=>`<option>${esc(d)}</option>`).join("");
- v2FillStartSigns();
-}
-function v2FillStartSigns(){
- const route=document.getElementById("v2Route").value;
- const dir=document.getElementById("v2Direction").value;
- const mode=document.getElementById("v2StartMode")?.value||"beginning";
- const label=document.getElementById("v2StartSignLabel");
- const select=document.getElementById("v2StartSign");
-
- const signs=PROJECT.signs
-  .filter(s=>s.route===route&&signPlanDirection(s)===dir)
-  .sort((a,b)=>{
-   const ao=PLAN_SIGN_INDEX?.[a.id]??999999;
-   const bo=PLAN_SIGN_INDEX?.[b.id]??999999;
-   return ao-bo;
-  });
-
- if(mode==="specific"){
-  if(label)label.style.display="block";
-  select.innerHTML=signs.map(s=>`<option value="${esc(s.id)}">Sign ${esc(s.sign_no)} · MP ${s.milepost??""}</option>`).join("");
-  return;
- }
-
- if(label)label.style.display="none";
-
- if(mode==="resume"){
-  const firstUnresolved=signs.find(s=>{
-   const st=signState(s.id);
-   return !(st.completed||st.not_installed);
-  });
-  select.innerHTML=`<option value="${esc(firstUnresolved?.id||signs[0]?.id||"")}">${firstUnresolved?`Resume at Sign ${esc(firstUnresolved.sign_no)}`:"No unresolved signs"}</option>`;
-  return;
- }
-
- // Beginning always means the true first sign in plan order.
- const first=signs[0];
- select.innerHTML=`<option value="${esc(first?.id||"")}">${first?`Begin at Sign ${esc(first.sign_no)}`:"No signs found"}</option>`;
-}
 async function v2RefreshClaims(){
- if(!V2_SESSION)return;
  const r=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims?status=eq.active&select=*&order=started_at.asc",{headers:v2AuthHeaders()});
  if(!r.ok)return;
  const rows=await r.json();
- const status=document.getElementById("v2ClaimStatus");
- if(status)status.innerHTML=rows.length?"Currently active: "+rows.map(x=>`${esc(x.user_name)} — ${esc(x.route)} ${esc(x.direction)} · ${esc(x.work_filter||"all")}`).join("<br>"):"No active route claims.";
  const board=document.getElementById("v2RouteBoard");
- if(board)board.innerHTML=rows.length?rows.map(x=>`<div class="list-row"><div><b>${esc(x.user_name)}</b><small>${esc(x.route)} ${esc(x.direction)} · Start ${esc(x.start_sign_no||"beginning")}</small></div><span class="pill">Active</span></div>`).join(""):"<p>No active users.</p>";
-}
-async function v2ClaimRoute(){
- const button=document.getElementById("v2StartWorkingBtn");
- const route=document.getElementById("v2Route").value;
- const direction=document.getElementById("v2Direction").value;
- const work_filter=document.getElementById("v2WorkType").value;
- const startId=document.getElementById("v2StartSign").value||null;
- const sign=PROJECT.signs.find(s=>s.id===startId);
- if(button){button.disabled=true;button.textContent="Starting…"}
- try{
-  await v2ReleaseRoute(false);
-  const claim={
-   user_id:V2_SESSION.user.id,user_name:V2_PROFILE.full_name,route,direction,work_filter,
-   start_sign_no:sign?.sign_no||null,start_sign_id:startId,
-   current_sign_no:sign?.sign_no||null,status:"active"
-  };
-  const response=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims",{
-   method:"POST",headers:{...v2AuthHeaders(),"Prefer":"return=representation"},
-   body:JSON.stringify(claim)
-  });
-  if(!response.ok)throw new Error(await response.text());
-  applyAssignment({
-   id:"self-"+Date.now(),crew_name:V2_PROFILE.full_name,crew_lead:V2_PROFILE.full_name,
-   members:[V2_PROFILE.full_name],route,direction,work_filter,start_item_id:startId,
-   start_item_label:sign?`Sign ${sign.sign_no}`:"Beginning"
-  });
-  const fieldAnchor=document.getElementById("fieldAnchorFilter");
-  if(fieldAnchor)fieldAnchor.value=work_filter;
-  const modal=document.getElementById("v2RouteModal");if(modal)modal.style.display="none";
-  v3ApplyCurrentRouteToLoadScreens();
-  v3UpdateRouteDashboard();
-  v3OpenCurrentRoute();
-  v3Toast(`Route started — ${route} ${direction}`);
-  await v2RefreshClaims();
- }catch(error){
-  console.error(error);alert("Could not start route: "+error.message);
- }finally{
-  if(button){button.disabled=false;button.textContent="Start Working"}
- }
-}
-async function v2ReleaseRoute(showMessage=true){
- if(!V2_SESSION)return;
-
- try{
-  const response=await fetch(
-   LIVE_SUPABASE_URL+
-   "/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+
-   "&status=eq.active",
-   {
-    method:"PATCH",
-    headers:{...v2AuthHeaders(),"Prefer":"return=minimal"},
-    body:JSON.stringify({
-     status:"released",
-     updated_at:new Date().toISOString()
-    })
-   }
-  );
-
-  if(!response.ok)throw new Error(await response.text());
-
-  // Clear the active route locally.
-  state.active_assignment=null;
-  state.selected=[];
-  if(typeof selected!=="undefined" && selected && typeof selected.clear==="function"){
-   selected.clear();
-  }
-  localStorage.setItem(KEY,JSON.stringify(state));
-
-  // Reset filters so the next route starts clean.
-  const resetSelect=(id,value="all")=>{
-   const el=document.getElementById(id);
-   if(el)el.value=value;
-  };
-  resetSelect("fieldRouteFilter");
-  resetSelect("fieldDirectionFilter");
-  resetSelect("fieldAnchorFilter");
-  resetSelect("fieldStatusFilter");
-  resetSelect("palletRouteFilter");
-  resetSelect("palletDirectionFilter");
-  resetSelect("palletAnchorFilter");
-  resetSelect("materialsRouteFilter");
-  resetSelect("materialsDirectionFilter");
-
-  // Refresh dashboard and clear route card.
-  if(typeof renderCurrentAssignment==="function")renderCurrentAssignment();
-  if(typeof renderDashboard==="function")renderDashboard();
-  if(typeof v3UpdateRouteDashboard==="function")v3UpdateRouteDashboard();
-  if(typeof v2RefreshClaims==="function")await v2RefreshClaims();
-
-  // Return to main dashboard.
-  const dashboardButton=[...document.querySelectorAll("nav button")]
-   .find(b=>/dashboard/i.test(b.textContent||""));
-  if(dashboardButton){
-   showTab("dashboard",dashboardButton);
-  }else{
-   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-   const dashboard=document.getElementById("dashboard");
-   if(dashboard)dashboard.classList.add("active");
-   document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
-  }
-
-  window.scrollTo({top:0,behavior:"smooth"});
-
-  if(showMessage){
-   if(typeof v3Toast==="function")v3Toast("Route released");
-   else alert("Route released.");
-  }
- }catch(error){
-  console.error(error);
-  if(showMessage)alert("Could not release route: "+error.message);
- }
-}
-async function v2LoadMyClaim(){
- const r=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+"&status=eq.active&select=*&limit=1",{headers:v2AuthHeaders()});
- if(!r.ok)return;
- const rows=await r.json();if(!rows.length)return;
- const c=rows[0];
- const sign=PROJECT.signs.find(s=>s.id===c.start_sign_id);
- applyAssignment({id:c.id,crew_name:c.user_name,crew_lead:c.user_name,members:[c.user_name],route:c.route,direction:c.direction,work_filter:c.work_filter||"all",start_item_id:c.start_sign_id,start_item_label:sign?`Sign ${sign.sign_no}`:"Beginning"});v3ApplyCurrentRouteToLoadScreens();v3UpdateRouteDashboard();
+ if(board)board.innerHTML=rows.length?rows.map(x=>`<div class="list-row"><div><b>${esc(x.user_name)}</b><small>${esc(x.route)} ${esc(x.direction)} · Start ${esc(x.start_sign_no||"beginning")} · Current ${esc(x.current_sign_no||"not reported")}</small></div><span class="pill">Active</span></div>`).join(""):"<p>No active users.</p>";
 }
 
 
@@ -743,12 +555,10 @@ async function loadRouteOverrides(){
   LIVE_ROUTE_OVERRIDES={};
   for(const row of rows)LIVE_ROUTE_OVERRIDES[row.sign_id]=row;
   LIVE_ROUTE_OVERRIDES_READY=true;
-  ROADWAY_SIDE_STOPS=buildRoadwaySideStops();
   return rows.length;
  }catch(error){
   console.error("Route overrides unavailable; using embedded fallback routing.",error);
   LIVE_ROUTE_OVERRIDES_READY=false;
-  ROADWAY_SIDE_STOPS=buildRoadwaySideStops();
   return 0;
  }
 }
@@ -789,25 +599,15 @@ state.crew=state.crew||'';
 state.photos=state.photos||{};
 state.workday=state.workday||{};
 state.assignments=state.assignments||[];
-state.active_assignment=state.active_assignment||null;
+state.saved_crews=state.saved_crews||[];
 state.crew_requests=state.crew_requests||[];
+state.active_assignment=state.active_assignment||null;
 
 
 for(const s of PROJECT.signs){
  if(!state.signs[s.id]) state.signs[s.id]={completed:s.completed_initial,completed_at:s.completed_initial?'Imported':null,crew:'',notes:'',return_trip:false,reason:''};
 }
-let liveSyncTimer=null;
-function save(){
- state.selected=[...selected];
- localStorage.setItem(KEY,JSON.stringify(state));
- renderDashboard();
- scheduleLiveProgressSync();
-}
-function scheduleLiveProgressSync(){
- if(!state.active_assignment)return;
- clearTimeout(liveSyncTimer);
- liveSyncTimer=setTimeout(syncLiveProgress,900);
-}
+function save(){state.selected=[...selected];localStorage.setItem(KEY,JSON.stringify(state));renderDashboard();}
 function setCrew(v){state.crew=v.trim();save();}
 
 function assignmentLocations(a){
@@ -821,286 +621,21 @@ function assignmentLocations(a){
  }
  return list;
 }
-
-async function loadLiveAssignment(){
- const params=new URLSearchParams(location.search);
- const input=document.getElementById("crewName");
- const typed=(input?.value||"").trim();
-
- // Accept a crew name/code OR the complete crew URL copied by Office.
- let supplied=params.get("crew")||typed||localStorage.getItem("select-signing-live-crew")||"";
- if(/^https?:\/\//i.test(supplied)){
-  try{
-   const pastedUrl=new URL(supplied);
-   supplied=pastedUrl.searchParams.get("crew")||"";
-  }catch(e){}
- }
- const crew_code=liveCrewCode(supplied);
-
- if(!crew_code){
-  alert("Enter the crew name, crew code, or paste the complete crew link.");
-  return;
- }
-
- if(input)input.value=crew_code;
-
- try{
-  // Load the newest row for this crew. Do not hide it just because its status changed.
-  const query=
-   LIVE_SUPABASE_URL+
-   "/rest/v1/crew_live_assignments"+
-   "?crew_code=eq."+encodeURIComponent(crew_code)+
-   "&select=*"+
-   "&order=updated_at.desc"+
-   "&limit=1";
-
-  const response=await fetch(query,{headers:LIVE_HEADERS});
-  if(!response.ok)throw new Error(await response.text());
-
-  const rows=await response.json();
-  if(!rows.length){
-   alert("No assignment was found for crew code: "+crew_code);
-   return;
-  }
-
-  const row=rows[0];
-  const progress=row.progress_data||{};
-
-  for(const [id,incoming] of Object.entries(progress.signs||{})){
-   if(state.signs[id])state.signs[id]={...state.signs[id],...incoming};
-  }
-  for(const req of (progress.crew_requests||[])){
-   if(!state.crew_requests.some(x=>x.id===req.id))state.crew_requests.push(req);
-  }
-
-  applyAssignment(row.assignment_data);
-  localStorage.setItem("select-signing-live-crew",crew_code);
-  history.replaceState(null,"",location.pathname+"?crew="+encodeURIComponent(crew_code));
-
-  const count=assignedSigns().length;
-  if(count===0){
-   alert(
-    "Assignment found for "+(row.crew_name||crew_code)+
-    ", but no project locations matched route "+
-    (row.assignment_data?.route||"(blank)")+" / "+
-    (row.assignment_data?.direction||"(blank)")+"."
-   );
-   return;
-  }
-
-  if(typeof showTab==="function"){
-   const fieldButton=[...document.querySelectorAll("nav button")]
-    .find(b=>/field|current assignment/i.test(b.textContent||""));
-   if(fieldButton)showTab("field",fieldButton);
-  }
-  if(typeof loadFieldByFilters==="function")loadFieldByFilters();
-
-  alert(
-   "Assignment loaded for "+(row.crew_name||crew_code)+
-   ".\n"+count+" signs are in this assignment."
-  );
- }catch(error){
-  console.error(error);
-  alert("Could not load assignment: "+error.message);
- }
-}
-async function syncLiveProgress(){
- const a=state.active_assignment;if(!a)return;
- const crew_code=liveCrewCode(a.crew_name);if(!crew_code)return;
- const relevant={};
- for(const sign of assignedSigns())if(state.signs[sign.id])relevant[sign.id]=state.signs[sign.id];
- const complete=assignedSigns().length>0&&assignedRemainingSigns().length===0;
- try{
-  const response=await fetch(LIVE_SUPABASE_URL+"/rest/v1/crew_live_assignments?crew_code=eq."+encodeURIComponent(crew_code),{
-   method:"PATCH",
-   headers:{...LIVE_HEADERS,"Prefer":"return=minimal"},
-   body:JSON.stringify({
-    progress_data:{signs:relevant,events:state.events||[],crew_requests:state.crew_requests||[],last_synced_at:new Date().toISOString()},
-    status:complete?"completed":"active",
-    updated_at:new Date().toISOString()
-   })
-  });
-  if(!response.ok)throw new Error(await response.text());
- }catch(error){console.error("Live sync failed",error)}
-}
-
 function applyAssignment(a){
- state.active_assignment={...a,persistent:true};
+ state.active_assignment=a;
  state.crew=a.crew_name||a.crew_lead||'Assigned crew';
- const crewNameInput=document.getElementById('crewName');if(crewNameInput)crewNameInput.value=state.crew;
- save();applyAssignmentFilters();renderCurrentAssignment();
-}
-
-function assignedLocations(){return state.active_assignment?assignmentLocations(state.active_assignment):[]}
-function assignedSigns(){return assignedLocations().flatMap(locSigns)}
-function assignedRemainingSigns(){return assignedSigns().filter(s=>!signResolved(s.id))}
-function firstUnresolvedAssignedLocation(){return assignedLocations().find(l=>!locResolved(l))||null}
-function applyAssignmentFilters(){
- const a=state.active_assignment;if(!a)return;
- ['fieldRouteFilter','palletRouteFilter','materialsRouteFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=a.route});
- ['fieldDirectionFilter','palletDirectionFilter','materialsDirectionFilter'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=a.direction});
- const fs=document.getElementById('fieldStatusFilter');if(fs)fs.value='all';
- const ps=document.getElementById('palletStatusFilter');if(ps)ps.value='incomplete';
- const ms=document.getElementById('materialsStatusFilter');if(ms)ms.value='incomplete';
-}
-function remainingMaterialSummary(){
- const anchors={},posts={};
- assignedRemainingSigns().forEach(s=>{
-  if(s.anchor_type&&s.anchor_type!=='None')anchors[s.anchor_type]=(anchors[s.anchor_type]||0)+1;
-  [s.left_post_length,s.right_post_length].forEach(v=>{if(v!==null&&v!==undefined&&v!=='')posts[v]=(posts[v]||0)+1});
- });
- return {anchors,posts};
-}
-function lastCompletedAssignedSign(){
- return assignedSigns().filter(s=>signState(s.id).completed_at).sort((a,b)=>String(signState(b.id).completed_at).localeCompare(String(signState(a.id).completed_at)))[0]||null;
-}
-function renderCurrentAssignment(){
- const a=state.active_assignment;
- const no=document.getElementById('noAssignmentCard');
- const home=document.getElementById('currentAssignmentHome');
-
- if(!a){
-  if(no)no.style.display='block';
-  if(home)home.style.display='none';
-  return;
- }
-
- if(no)no.style.display='none';
- if(home)home.style.display='block';
-
- const signs=assignedSigns();
- const remaining=assignedRemainingSigns();
- const resolved=signs.length-remaining.length;
- const pct=signs.length?Math.round(resolved/signs.length*100):0;
-
- const crewName=document.getElementById('homeCrewName');
- if(crewName)crewName.textContent=a.crew_name||'Assigned Crew';
-
- const route=document.getElementById('homeRoute');
- if(route)route.textContent=`${a.route||''} ${a.direction||''}`.trim();
-
- const people=document.getElementById('homePeople');
- if(people)people.innerHTML=`<b>Lead:</b> ${esc(a.crew_lead||'Not listed')}<br><b>Members:</b> ${esc((a.members||[]).join(', ')||'None listed')}<br><b>Starting at:</b> ${esc(a.start_item_label||'Beginning of route')}`;
-
- const progressBar=document.getElementById('homeProgressBar');
- if(progressBar)progressBar.style.width=pct+'%';
-
- const progressText=document.getElementById('homeProgressText');
- if(progressText)progressText.textContent=`${resolved} / ${signs.length} signs resolved · ${remaining.length} remaining`;
-
- const last=lastCompletedAssignedSign();
- const lastCompleted=document.getElementById('homeLastCompleted');
- if(lastCompleted)lastCompleted.innerHTML=last?`<b>Last installed:</b> Sign ${esc(last.sign_no)} · MP ${last.milepost??''}`:'<b>Last installed:</b> None yet';
-
- const m=remainingMaterialSummary();
- const remainingLoad=document.getElementById('homeRemainingLoad');
- if(remainingLoad)remainingLoad.innerHTML=`<ul>${Object.entries(m.anchors).map(([k,v])=>`<li><b>${v}</b> ${esc(k)} anchors</li>`).join('')||'<li>No remaining anchors</li>'}${Object.entries(m.posts).sort((a,b)=>Number(a[0])-Number(b[0])).map(([k,v])=>`<li><b>${v}</b> × ${esc(k)} ft posts</li>`).join('')||'<li>No remaining posts</li>'}</ul>`;
-
- const complete=remaining.length===0&&signs.length>0;
- const completeCard=document.getElementById('routeCompleteCard');
- if(completeCard)completeCard.style.display=complete?'block':'none';
-
- const completeText=document.getElementById('routeCompleteText');
- if(complete&&completeText)completeText.textContent=`${a.route||''} ${a.direction||''}: ${signs.length} of ${signs.length} signs resolved.`;
-
- if(typeof showAssignmentBanner==='function')showAssignmentBanner(a);
-
- // Older crew layouts do not have the optional assignment-home cards.
- // In that case, load the field route immediately so the assignment is usable.
- if(!home){
-  applyAssignmentFilters();
-  if(typeof loadFieldByFilters==='function')loadFieldByFilters();
- }
-}
-function continueAssignment(){
- const a=state.active_assignment;if(!a){alert('Load an assignment first.');return}
- applyAssignmentFilters();
- const next=firstUnresolvedAssignedLocation();
- if(!next){renderCurrentAssignment();alert('This route assignment is complete.');return}
- if(!state.workday.active){state.workday={active:true,started_at:new Date().toISOString(),crew:state.crew,route:a.route,direction:a.direction};addEvent('workday_started',`Workday started on ${a.route} ${a.direction}`)}
+ document.getElementById('crewName').value=state.crew;
+ const ids=['fieldRouteFilter','palletRouteFilter','materialsRouteFilter'];
+ ids.forEach(id=>{const el=document.getElementById(id);if(el)el.value=a.route});
+ ['fieldDirectionFilter','palletDirectionFilter','materialsDirectionFilter'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=a.direction});
+ save();
+ showAssignmentBanner(a);
  loadFieldByFilters();
- const btn=[...document.querySelectorAll('nav button')].find(b=>b.textContent.includes('Continue Work'));showTab('field',btn);
 }
-function openLoadTruck(){
- applyAssignmentFilters();renderPallet();
- const btn=[...document.querySelectorAll('nav button')].find(b=>b.textContent.includes('Load Truck'));showTab('pallet',btn);
-}
-
-
-function currentFieldSignItem(){
- const next=firstUnresolvedAssignedLocation();
- if(!next)return '';
- const s=locSigns(next).find(x=>!signResolved(x.id))||locSigns(next)[0];
- return s?(s.item_no||s.sign_no||s.id):next.id;
-}
-function submitCrewRequest(){
- const a=state.active_assignment;
- if(!a){alert('Load an assignment first.');return}
- const comment=document.getElementById('requestComment').value.trim();
- if(!comment){alert('Enter a comment describing what is needed.');return}
- const req={
-  id:'R'+Date.now(),
-  created_at:new Date().toISOString(),
-  crew_name:a.crew_name||state.crew||'Assigned crew',
-  crew_lead:a.crew_lead||'',
-  route:a.route||'',
-  direction:a.direction||'',
-  request_type:document.getElementById('requestType').value,
-  urgency:document.getElementById('requestUrgency').value,
-  quantity:document.getElementById('requestQuantity').value||'',
-  sign_item:document.getElementById('requestSignItem').value.trim()||currentFieldSignItem(),
-  comment,
-  office_email:a.office_email||''
- };
- state.crew_requests.push(req);save();renderCrewRequestHistory();
- const subject=encodeURIComponent(`[Select Signing] ${req.urgency}: ${req.request_type} request from ${req.crew_name}`);
- const body=encodeURIComponent(`Crew: ${req.crew_name}
-Lead: ${req.crew_lead}
-Route: ${req.route} ${req.direction}
-Sign/item: ${req.sign_item||'Not specified'}
-Type: ${req.request_type}
-Quantity: ${req.quantity||'Not specified'}
-Urgency: ${req.urgency}
-
-Comment:
-${req.comment}
-
-Request ID: ${req.id}
-Time: ${req.created_at}`);
- downloadSingleCrewRequest(req);
- if(req.office_email){
-  window.location.href=`mailto:${encodeURIComponent(req.office_email)}?subject=${subject}&body=${body}`;
- }else{
-  alert('Request saved and downloaded. No office notification email was included in this assignment.');
- }
- document.getElementById('requestQuantity').value='';
- document.getElementById('requestComment').value='';
-}
-function downloadSingleCrewRequest(req){
- const blob=new Blob([JSON.stringify(req,null,2)],{type:'application/json'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);
- a.download=`Crew_Request_${req.crew_name.replace(/[^a-z0-9]+/gi,'_')}_${req.id}.json`;
- a.click();URL.revokeObjectURL(a.href);
-}
-function downloadCrewRequests(){
- const blob=new Blob([JSON.stringify(state.crew_requests,null,2)],{type:'application/json'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);
- a.download=`Crew_Request_Log_${(state.crew||'Crew').replace(/[^a-z0-9]+/gi,'_')}.json`;
- a.click();URL.revokeObjectURL(a.href);
-}
-function renderCrewRequestHistory(){
- const out=document.getElementById('crewRequestHistory');if(!out)return;
- out.innerHTML=state.crew_requests.slice().sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).map(r=>`<div class="card" style="margin-top:10px">
- <b>${esc(r.request_type)}</b> — ${esc(r.urgency)}<br>
- Sign/item: ${esc(r.sign_item||'Not specified')} · Qty: ${esc(String(r.quantity||''))}<br>
- ${esc(r.comment)}<br><span class="note">${esc(r.created_at)}</span>
- </div>`).join('')||'<p>No requests sent yet.</p>';
-}
-
 function showAssignmentBanner(a){
  const card=document.getElementById('assignmentBanner');
  if(!card)return;
- card.innerHTML=`<b>${esc(a.crew_name)}</b> · ${esc(a.route)} ${esc(a.direction)}<br>Lead: ${esc(a.crew_lead)} · Members: ${esc((a.members||[]).join(', ')||'None listed')}<br>Starts at ${esc(a.start_item_label||'the beginning of the route')} and continues automatically at the first unresolved sign.`;
+ card.innerHTML=`<b>${esc(a.crew_name)}</b> · ${esc(a.route)} ${esc(a.direction)}<br>Lead: ${esc(a.crew_lead)} · Members: ${esc((a.members||[]).join(', ')||'None listed')}<br>Starts at ${esc(a.start_item_label||'the beginning of the route')} and then continues at the first unresolved sign.`;
  card.style.display='block';
 }
 function importAssignment(event){
@@ -1208,165 +743,311 @@ function buildPlanDirectionMap(){
 }
 const PLAN_DIRECTION=buildPlanDirectionMap();
 function locPlanDirection(loc){return locationOverrideSide(loc)||PLAN_DIRECTION[loc.id]||canonicalDirections(loc.route)[0]}
-
-function routeFaceDirection(sign){
- const c=directionCode(sign?.direction);
- return {N:"Northbound",S:"Southbound",E:"Eastbound",W:"Westbound"}[c]||"";
-}
-function routeIsNoPassing(sign){
- const code=String(sign?.mutcd||"").toUpperCase();
- const description=String(sign?.description||"").toUpperCase();
- return description.includes("NO PASSING")||code.startsWith("W14-3")||code.startsWith("R4-");
-}
-
-const PLAN_SIGN_INDEX=Object.fromEntries(PROJECT.signs.map((sign,index)=>[sign.id,index]));
-
-const ROUTE_NUMBER_BLOCKS={
- "IA-1":[1,498,"Northbound","Southbound"],
- "US-6":[925,1731,"Eastbound","Westbound"],
- "US-30":[2319,2527,"Eastbound","Westbound"],
- "I-80":[2767,3196,"Eastbound","Westbound"],
- "IA-149":[3613,3813,"Northbound","Southbound"],
- "US-151":[3997,4091,"Northbound","Southbound"],
- "IA-212":[4177,4282,"Eastbound","Westbound"],
- "US-218":[4377,4646,"Northbound","Southbound"],
- "I-380":[4842,4903,"Northbound","Southbound"],
- "IA-965":[4952,4983,"Northbound","Southbound"]
-};
-
-function planBlockDirection(sign){
- const rule=ROUTE_NUMBER_BLOCKS[sign?.route];
- const number=Number(sign?.sign_no);
- if(!rule||!Number.isFinite(number))return"";
- return number<=rule[1]?rule[2]:rule[3];
-}
-
-function faceDirectionForRoute(sign){
- const raw=String(sign?.direction||"").trim().toUpperCase();
- const route=String(sign?.route||"");
- const northSouth=["IA-1","IA-149","US-151","US-218","I-380","IA-965","IA-21"].includes(route);
-
- // Diagonal faces use the component that matches the roadway orientation.
- if(northSouth){
-  if(raw.includes("N"))return"Northbound";
-  if(raw.includes("S"))return"Southbound";
- }else{
-  if(raw.includes("E"))return"Eastbound";
-  if(raw.includes("W"))return"Westbound";
- }
- return routeFaceDirection(sign);
-}
-
-function planSequence(sign){
- return PLAN_SIGN_INDEX[sign?.id]??999999;
-}
-
-function routeInstallDirection(sign){
- // User-confirmed special rule: No Passing uses face direction when supplied.
- if(routeIsNoPassing(sign)){
-  return faceDirectionForRoute(sign)||planBlockDirection(sign)||overrideRoadwaySide(sign)||canonicalDirections(sign.route)[0];
- }
-
- // The plan's route number block is authoritative for main roadway side.
- return planBlockDirection(sign)||overrideRoadwaySide(sign)||alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
-}
-
 function signPlanDirection(sign){
- return routeInstallDirection(sign);
+ const override=overrideRoadwaySide(sign);
+ if(override)return override;
+ const loc=PROJECT.locations.find(l=>l.id===sign.location_id);
+ return loc?locPlanDirection(loc):alignedTravelDirection(sign)||canonicalDirections(sign.route)[0];
 }
 
-function routeStopSigns(stop){
- if(stop&&Array.isArray(stop._route_sign_ids)){
-  return stop._route_sign_ids.map(id=>PROJECT.signs.find(s=>s.id===id)).filter(Boolean);
- }
- return locSigns(stop);
+function showTab(id,btn){document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='assignments')renderAssignments();if(id==='planner')renderPlanner();if(id==='field')loadFieldByFilters();if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
+
+function initAssignmentControls(){
+ const routes=[...new Set(PROJECT.locations.map(l=>l.route))].sort();
+ document.getElementById('assignRoute').innerHTML=routes.map(r=>`<option>${esc(r)}</option>`).join('');
+ refreshAssignmentDirections();
+ renderAssignments();
 }
-function buildRoadwaySideStops(){
- const stops=[];
- for(const loc of PROJECT.locations){
-  const grouped={};
-  for(const sign of locSigns(loc)){
-   const side=signPlanDirection(sign)||"Manual review";
-   (grouped[side]||(grouped[side]=[])).push(sign);
-  }
-  for(const [side,signs] of Object.entries(grouped)){
-   if(side==="Manual review")continue;
-   const orderValues=signs.map(overrideRouteOrder).filter(v=>v!==null);
-   stops.push({
-    ...loc,
-    id:loc.id+"__"+side,
-    _source_location_id:loc.id,
-    _roadway_side:side,
-    _route_sign_ids:signs.map(s=>s.id),
-    _route_order:orderValues.length?Math.min(...orderValues):null,
-    label:signs.map(s=>s.sign_no).join(" / ")
+
+function savedLeadRecords(){
+ const map=new Map();
+ for(const c of state.saved_crews){
+  const name=(c.lead||'').trim();
+  if(name&&!map.has(name.toLowerCase()))map.set(name.toLowerCase(),{name,email:c.email||''});
+ }
+ return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+}
+function refreshSavedCrewControls(){
+ const crewSelect=document.getElementById('assignCrewSelect');
+ const leadSelect=document.getElementById('assignLead');
+ if(crewSelect){
+  const current=crewSelect.value;
+  crewSelect.innerHTML='<option value="">Select saved crew</option>'+state.saved_crews.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  if([...crewSelect.options].some(o=>o.value===current))crewSelect.value=current;
+ }
+ if(leadSelect){
+  const current=leadSelect.value;
+  leadSelect.innerHTML='<option value="">Select crew lead</option>'+savedLeadRecords().map(l=>`<option value="${esc(l.name)}" data-email="${esc(l.email)}">${esc(l.name)}</option>`).join('');
+  if([...leadSelect.options].some(o=>o.value===current))leadSelect.value=current;
+ }
+ renderSavedCrews();
+}
+function saveCrewProfile(){
+ const name=document.getElementById('savedCrewName').value.trim();
+ const lead=document.getElementById('savedCrewLead').value.trim();
+ if(!name){alert('Enter a crew name.');return}
+ const existing=state.saved_crews.find(c=>c.name.toLowerCase()===name.toLowerCase());
+ const record={
+  id:existing?.id||('C'+Date.now()),
+  name,lead,
+  email:document.getElementById('savedCrewEmail').value.trim(),
+  members:document.getElementById('savedCrewMembers').value.split(',').map(x=>x.trim()).filter(Boolean)
+ };
+ if(existing)state.saved_crews=state.saved_crews.map(c=>c.id===existing.id?record:c);
+ else state.saved_crews.push(record);
+ save();clearCrewProfileForm();refreshSavedCrewControls();
+}
+function clearCrewProfileForm(){
+ ['savedCrewName','savedCrewLead','savedCrewEmail','savedCrewMembers'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+}
+function editSavedCrew(id){
+ const c=state.saved_crews.find(x=>x.id===id);if(!c)return;
+ document.getElementById('savedCrewName').value=c.name||'';
+ document.getElementById('savedCrewLead').value=c.lead||'';
+ document.getElementById('savedCrewEmail').value=c.email||'';
+ document.getElementById('savedCrewMembers').value=(c.members||[]).join(', ');
+}
+function deleteSavedCrew(id){
+ const c=state.saved_crews.find(x=>x.id===id);if(!c)return;
+ if(!confirm(`Delete saved crew "${c.name}"? Existing assignments will remain.`))return;
+ state.saved_crews=state.saved_crews.filter(x=>x.id!==id);save();refreshSavedCrewControls();
+}
+function useSavedCrew(id){
+ const el=document.getElementById('assignCrewSelect');el.value=id;applySavedCrewToAssignment();
+}
+function renderSavedCrews(){
+ const out=document.getElementById('savedCrewList');if(!out)return;
+ out.innerHTML=state.saved_crews.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<div class="card" style="margin-top:10px">
+ <b>${esc(c.name)}</b><br>Lead: ${esc(c.lead||'Not assigned')}<br>Members: ${esc((c.members||[]).join(', ')||'None listed')}<br>${c.email?`Email: ${esc(c.email)}<br>`:''}
+ <button onclick="useSavedCrew('${c.id}')">Use for assignment</button>
+ <button onclick="editSavedCrew('${c.id}')">Edit</button>
+ <button class="danger" onclick="deleteSavedCrew('${c.id}')">Delete</button>
+ </div>`).join('')||'<p>No crews saved yet.</p>';
+}
+function applySavedCrewToAssignment(){
+ const id=document.getElementById('assignCrewSelect').value;
+ const c=state.saved_crews.find(x=>x.id===id);if(!c)return;
+ document.getElementById('assignCrewName').value=c.name||'';
+ document.getElementById('assignLead').value=c.lead||'';
+ document.getElementById('assignEmail').value=c.email||'';
+ document.getElementById('assignMembers').value=(c.members||[]).join(', ');
+}
+function applyLeadToAssignment(){
+ const select=document.getElementById('assignLead');
+ const option=select.selectedOptions[0];
+ if(option&&option.dataset.email)document.getElementById('assignEmail').value=option.dataset.email;
+}
+function importCrewRequestFile(file){
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  try{
+   const data=JSON.parse(reader.result);
+   const rows=Array.isArray(data)?data:[data];
+   rows.forEach(r=>{
+    if(!r.id)r.id='R'+Date.now()+Math.random().toString(16).slice(2);
+    if(!state.crew_requests.some(x=>x.id===r.id))state.crew_requests.push({...r,read:false});
    });
+   save();renderCrewRequests();document.getElementById('crewRequestFile').value='';
+   if(Notification.permission==='granted')new Notification('New crew request',{body:`${rows.length} request${rows.length===1?'':'s'} imported.`});
+  }catch(e){alert('That request file could not be read.')}
+ };
+ reader.readAsText(file);
+}
+function renderCrewRequests(){
+ const out=document.getElementById('crewRequestList'),badge=document.getElementById('crewRequestBadge');
+ if(!out||!badge)return;
+ const unread=state.crew_requests.filter(r=>!r.read).length;
+ badge.textContent=`${unread} new`;
+ out.innerHTML=state.crew_requests.slice().sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).map(r=>`<div class="card" style="margin-top:10px;${r.read?'':'border:2px solid currentColor'}">
+ <b>${esc(r.request_type||'Crew request')}</b> — ${esc(r.urgency||'Normal')}<br>
+ <b>Crew:</b> ${esc(r.crew_name||'Unknown')} · <b>Route:</b> ${esc((r.route||'')+' '+(r.direction||''))}<br>
+ <b>Item/sign:</b> ${esc(r.sign_item||'Not specified')} · <b>Quantity:</b> ${esc(String(r.quantity||''))}<br>
+ <b>Comment:</b> ${esc(r.comment||'')}<br>
+ <span class="note">${esc(r.created_at||'')}</span><br>
+ <button onclick="setRequestRead('${r.id}',${r.read?'false':'true'})">${r.read?'Mark unread':'Mark read'}</button>
+ <button class="danger" onclick="deleteCrewRequest('${r.id}')">Delete</button>
+ </div>`).join('')||'<p>No crew requests imported.</p>';
+}
+function setRequestRead(id,read){const r=state.crew_requests.find(x=>x.id===id);if(r){r.read=read;save();renderCrewRequests()}}
+function markAllRequestsRead(){state.crew_requests.forEach(r=>r.read=true);save();renderCrewRequests()}
+function deleteCrewRequest(id){state.crew_requests=state.crew_requests.filter(r=>r.id!==id);save();renderCrewRequests()}
+
+function refreshAssignmentDirections(){
+ const route=document.getElementById('assignRoute').value;
+ document.getElementById('assignDirection').innerHTML=canonicalDirections(route).map(d=>`<option>${d}</option>`).join('');
+ refreshAssignmentStartItems();
+}
+function assignmentRouteLocations(route,direction){
+ let list=PROJECT.locations.filter(l=>l.route===route&&locPlanDirection(l)===direction);
+ list.sort((a,b)=>travelCompare(a,b,locPlanDirection));
+ return list;
+}
+function refreshAssignmentStartItems(){
+ const route=document.getElementById('assignRoute').value;
+ const direction=document.getElementById('assignDirection').value;
+ const select=document.getElementById('assignStartItem');if(!select)return;
+ const rows=[];
+ for(const loc of assignmentRouteLocations(route,direction)){
+  const signs=locSigns(loc);
+  if(!signs.length){
+   rows.push({id:loc.id,label:`MP ${loc.milepost??''} — ${loc.label}`});
+  }else{
+   for(const s of signs){
+    const item=s.item_no||s.sign_no||s.id;
+    rows.push({id:s.id,label:`Item ${item} · Sign ${s.sign_no||''} · MP ${s.milepost??loc.milepost??''} · ${s.description||s.legend||loc.label||''}`});
+   }
   }
  }
- return stops;
+ select.innerHTML='<option value="">Beginning of route</option>'+rows.map(x=>`<option value="${esc(x.id)}">${esc(x.label)}</option>`).join('');
 }
-let ROADWAY_SIDE_STOPS=[];
-function stopPlanDirection(stop){return stop._roadway_side||locPlanDirection(stop)}
-function stopRouteOrder(stop){
- if(stop&&stop._route_order!==undefined&&stop._route_order!==null)return Number(stop._route_order);
- return locationOverrideOrder(stop);
+
+function saveAssignment(){
+ const route=document.getElementById('assignRoute').value;
+ const direction=document.getElementById('assignDirection').value;
+ const crewName=document.getElementById('assignCrewName').value.trim()||'Assigned Crew';
+ state.assignments=state.assignments.filter(x=>x.crew_name!==crewName);
+ state.assignments.push({
+  id:'A'+Date.now(),created_at:new Date().toISOString(),
+  crew_name:crewName,
+  crew_lead:document.getElementById('assignLead').value.trim(),
+  lead_email:document.getElementById('assignEmail').value.trim(),
+  members:document.getElementById('assignMembers').value.split(',').map(x=>x.trim()).filter(Boolean),
+  office_email:document.getElementById('assignOfficeEmail').value.trim(),
+  route,direction,persistent:true,
+  start_item_id:document.getElementById('assignStartItem').value||'',
+  start_item_label:document.getElementById('assignStartItem').selectedOptions[0]?.textContent||'Beginning of route'
+ });
+ save();renderAssignments();renderDashboard();
 }
-function stopTravelCompare(a,b){
- const ad=directionCode(stopPlanDirection(a)),bd=directionCode(stopPlanDirection(b));
- if(ad!==bd){
-  const order={N:1,S:2,E:3,W:4,"":9};
-  return (order[ad]||9)-(order[bd]||9);
+
+async function sendAssignmentLive(id){
+ const a=state.assignments.find(x=>x.id===id); if(!a)return;
+ const crew_code=liveCrewCode(a.crew_name);
+ if(!crew_code){alert("Enter a crew name first.");return}
+ const body={crew_code,crew_name:a.crew_name,assignment_data:a,progress_data:{signs:{},events:[],crew_requests:[]},status:"active",updated_at:new Date().toISOString()};
+ try{
+  const response=await fetch(LIVE_SUPABASE_URL+"/rest/v1/crew_live_assignments?on_conflict=crew_code",{
+   method:"POST",
+   headers:{...LIVE_HEADERS,"Prefer":"resolution=merge-duplicates,return=representation"},
+   body:JSON.stringify(body)
+  });
+  if(!response.ok)throw new Error(await response.text());
+  const crewUrl=location.origin+"/crew.html?crew="+encodeURIComponent(crew_code);
+  try{await navigator.clipboard.writeText(crewUrl)}catch(e){}
+  alert("Assignment sent to "+a.crew_name+".\n\nCrew link copied:\n"+crewUrl);
+ }catch(error){
+  console.error(error);
+  alert("Could not send assignment: "+error.message);
  }
-
- // Preserve the original imported plan-sheet sequence.
- const aOrder=Math.min(...routeStopSigns(a).map(planSequence));
- const bOrder=Math.min(...routeStopSigns(b).map(planSequence));
- if(aOrder!==bOrder)return aOrder-bOrder;
-
- // GPS/milepost is only a tie-breaker for signs occupying the same plan position.
- const am=Number(a.milepost??999999),bm=Number(b.milepost??999999);
- return travelAscending(ad)?am-bm:bm-am;
 }
 
-function showTab(id,btn){if(!btn)return;document.querySelectorAll('section').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(id==='planner')renderPlanner();if(id==='dashboard')renderCurrentAssignment();if(id==='field')loadFieldByFilters();if(id==='requests'){document.getElementById('requestSignItem').value=currentFieldSignItem();renderCrewRequestHistory();}if(id==='pallet')renderPallet();if(id==='materials')renderMaterials();if(id==='timeline')renderTimeline();if(id==='signs')renderAllSigns();}
+async function refreshLiveProgress(silent=false){
+ try{
+  const response=await fetch(LIVE_SUPABASE_URL+"/rest/v1/crew_live_assignments?select=crew_code,crew_name,progress_data,status,updated_at",{headers:LIVE_HEADERS});
+  if(!response.ok)throw new Error(await response.text());
+  const rows=await response.json();
+  let updates=0,requests=0;
+  for(const row of rows){
+   const progress=row.progress_data||{};
+   for(const [id,incoming] of Object.entries(progress.signs||{})){
+    if(!state.signs[id])continue;
+    const current=state.signs[id]||{};
+    const it=String(incoming.completed_at||incoming.updated_at||"");
+    const ct=String(current.completed_at||current.updated_at||"");
+    if(!ct||it>=ct){state.signs[id]={...current,...incoming};updates++}
+   }
+   for(const req of (progress.crew_requests||[])){
+    if(!state.crew_requests.some(x=>x.id===req.id)){state.crew_requests.push({...req,read:false});requests++}
+   }
+  }
+  save();renderAssignments();renderCrewRequests();renderDashboard();
+  if(!silent)alert("Live progress refreshed.\n"+updates+" sign updates merged.\n"+requests+" new crew requests.");
+ }catch(error){
+  console.error(error);
+  if(!silent)alert("Could not refresh live progress: "+error.message);
+ }
+}
+
+function assignmentSummary(a){
+ const signs=assignmentLocations(a).flatMap(locSigns);
+ const remaining=signs.filter(s=>!signResolved(s.id));
+ const anchors={},posts={};
+ remaining.forEach(s=>{
+  if(s.anchor_type&&s.anchor_type!=='None')anchors[s.anchor_type]=(anchors[s.anchor_type]||0)+1;
+  [s.left_post_length,s.right_post_length].forEach(v=>{if(v!==null&&v!==undefined&&v!=='')posts[v]=(posts[v]||0)+1});
+ });
+ return `${a.crew_name}
+Lead: ${a.crew_lead}
+Members: ${(a.members||[]).join(', ')||'None listed'}
+Current assignment: ${a.route} ${a.direction}
+Starting at: ${a.start_item_label||'Beginning of route'}
+Office notifications: ${a.office_email||'Not configured'}
+Progress: ${signs.length-remaining.length} / ${signs.length} signs resolved
+Remaining anchors: ${Object.entries(anchors).map(([k,v])=>`${k} ${v}`).join(', ')||'None'}
+Remaining posts: ${Object.entries(posts).sort((x,y)=>Number(x[0])-Number(y[0])).map(([k,v])=>`${k} ft: ${v}`).join(', ')||'None'}
+
+This assignment remains active until changed by the office.`;
+}
+function downloadAssignment(id){
+ const a=state.assignments.find(x=>x.id===id); if(!a)return;
+ const blob=new Blob([JSON.stringify(a,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=`${a.crew_name.replace(/[^a-z0-9]+/gi,'_')}_${a.route}_${a.direction}_Persistent_Assignment.json`;
+ link.click();URL.revokeObjectURL(url);
+}
+async function copyAssignment(id){
+ const a=state.assignments.find(x=>x.id===id); if(!a)return;
+ await navigator.clipboard.writeText(assignmentSummary(a)); alert('Assignment summary copied.');
+}
+function emailAssignment(id){
+ const a=state.assignments.find(x=>x.id===id); if(!a)return;
+ const subject=encodeURIComponent(`${a.crew_name} assignment — ${a.route} ${a.direction}`);
+ const body=encodeURIComponent(assignmentSummary(a)+'\n\nDownload the assignment file from the office and open it using Load Assignment in the crew app.');
+ location.href=`mailto:${encodeURIComponent(a.lead_email||'')}?subject=${subject}&body=${body}`;
+}
+function deleteAssignment(id){
+ state.assignments=state.assignments.filter(x=>x.id!==id);save();renderAssignments();
+}
+function assignmentProgress(a){
+ const signs=assignmentLocations(a).flatMap(locSigns);
+ const resolved=signs.filter(s=>signResolved(s.id)).length;
+ const installed=signs.filter(s=>signState(s.id).completed).length;
+ const attention=signs.filter(s=>signState(s.id).not_installed).length;
+ return {total:signs.length,resolved,installed,attention,remaining:signs.length-resolved,pct:signs.length?Math.round(resolved/signs.length*100):0};
+}
+function renderAssignments(){
+ const out=document.getElementById('assignmentList');if(!out)return;
+ out.innerHTML=state.assignments.map(a=>{const p=assignmentProgress(a);return `<div class="card" style="margin-top:12px">
+ <h3>${esc(a.crew_name)} — ${esc(a.route)} ${esc(a.direction)}</h3>
+ <p><b>Status:</b> ${p.remaining===0?'Complete':'Assigned'}<br><b>Lead:</b> ${esc(a.crew_lead||'Not listed')}<br>
+ <b>Members:</b> ${esc((a.members||[]).join(', ')||'None listed')}<br>
+ <b>Starting at:</b> ${esc(a.start_item_label||'Beginning of route')}<br>
+ <b>Progress:</b> ${p.resolved} / ${p.total} (${p.pct}%) · <b>Remaining:</b> ${p.remaining}<br>
+ <b>Installed:</b> ${p.installed} · <b>Not installed:</b> ${p.attention}</p>
+ <div class="progress"><div style="width:${p.pct}%"></div></div>
+ <button class="primary" onclick="sendAssignmentLive('${a.id}')">Send to Crew</button>
+ <button onclick="downloadAssignment('${a.id}')">Download backup file</button>
+ <button onclick="copyAssignment('${a.id}')">Copy summary</button>
+ <button onclick="emailAssignment('${a.id}')">Email crew lead</button>
+ <button class="danger" onclick="deleteAssignment('${a.id}')">Remove assignment</button>
+ </div>`}).join('')||'<div class="card" style="margin-top:12px">No crews are currently assigned.</div>';
+ renderCrewAssignmentDashboard();
+}
+
 function renderDashboard(){
- const total=PROJECT.signs.length;
- const done=PROJECT.signs.filter(s=>signState(s.id).completed).length;
- const remain=total-done;
+ const total=PROJECT.signs.length,done=PROJECT.signs.filter(s=>signState(s.id).completed).length,remain=total-done;
  const soil=PROJECT.signs.filter(s=>s.anchor_type==='Soil'&&!signState(s.id).completed).length;
  const slip=PROJECT.signs.filter(s=>s.anchor_type==='Slip-Base'&&!signState(s.id).completed).length;
- const today=new Date().toISOString().slice(0,10);
- const todayDone=PROJECT.signs.filter(s=>(signState(s.id).completed_at||'').startsWith(today)).length;
-
- const cards=document.getElementById('dashboardCards');
- if(cards){
-  cards.innerHTML=[
-   ['Total signs',total],
-   ['Completed',done],
-   ['Remaining',remain],
-   ['Completed today',todayDone],
-   ['Soil anchors remaining',soil],
-   ['Slip-base remaining',slip]
-  ].map(x=>`<div class="card"><div>${x[0]}</div><div class="big">${x[1]}</div></div>`).join('');
- }
-
- const pct=total?Math.round(done/total*100):0;
- const bar=document.getElementById('progressBar');
- if(bar)bar.style.width=pct+'%';
-
- const progressText=document.getElementById('progressText');
- if(progressText)progressText.textContent=`${done} of ${total} signs complete (${pct}%)`;
-
- const summary=document.getElementById('routeSummary');
- if(summary){
-  const routes=[...new Set(PROJECT.signs.map(s=>s.route))];
-  summary.innerHTML=routes.map(r=>{
-   const ss=PROJECT.signs.filter(s=>s.route===r);
-   const d=ss.filter(s=>signState(s.id).completed).length;
-   return `<p><b>${r}</b>: ${d} / ${ss.length} complete</p>`;
-  }).join('');
- }
+ const today=new Date().toISOString().slice(0,10),todayDone=PROJECT.signs.filter(s=>(signState(s.id).completed_at||'').startsWith(today)).length;
+ document.getElementById('dashboardCards').innerHTML=[
+ ['Total signs',total],['Completed',done],['Remaining',remain],['Completed today',todayDone],['Soil anchors remaining',soil],['Slip-base remaining',slip]
+ ].map(x=>`<div class="card"><div>${x[0]}</div><div class="big">${x[1]}</div></div>`).join('');
+ const pct=total?Math.round(done/total*100):0;document.getElementById('progressBar').style.width=pct+'%';document.getElementById('progressText').textContent=`${done} of ${total} signs complete (${pct}%)`;
+ const routes=[...new Set(PROJECT.signs.map(s=>s.route))];
+ document.getElementById('routeSummary').innerHTML=routes.map(r=>{const ss=PROJECT.signs.filter(s=>s.route===r),d=ss.filter(s=>signState(s.id).completed).length;return `<p><b>${r}</b>: ${d} / ${ss.length} complete</p>`}).join('');
 }
+
 function fillCanonicalDirection(selectId,route,allLabel='All directions'){
  const el=document.getElementById(selectId); if(!el)return;
  const dirs=route==='all'?['Eastbound','Westbound','Northbound','Southbound']:canonicalDirections(route);
@@ -1414,7 +1095,7 @@ function renderPlanner(){
  return s.post_configuration==='Single post'?`L ${l} ft · Single post`:(l!==''||r!==''?`L ${l} ft / R ${r} ft`:'');
 }).filter(Boolean))].join(' / '))}</td>
 <td>${esc([...new Set(ss.map(s=>s.installation_dimension).filter(x=>x!==null&&x!==undefined&&x!==''))].join(' / '))}</td>
-<td>${done?'Complete':partial?'Partial':'Incomplete'}</td><td>${esc(ss.map(s=>s.description).filter(Boolean).join(' / '))}</td><td><a target="_blank" href="${drive}" onclick="startDrive('${l._source_location_id||l.id}')">Drive here</a></td>`;
+<td>${done?'Complete':partial?'Partial':'Incomplete'}</td><td>${esc(ss.map(s=>s.description).filter(Boolean).join(' / '))}</td><td><a target="_blank" href="${drive}" onclick="startDrive('${l.id}')">Drive here</a></td>`;
   body.appendChild(tr);
  }
  document.getElementById('plannerSummary').textContent=`${list.length} locations shown · ${selected.size} selected`;
@@ -1435,105 +1116,57 @@ function fieldFilteredLocations(){
  const a=document.getElementById('fieldAnchorFilter').value;
  const st=document.getElementById('fieldStatusFilter').value;
  const q=document.getElementById('fieldSearchFilter').value.toLowerCase();
- let list=ROADWAY_SIDE_STOPS.filter(l=>{
-  const ss=routeStopSigns(l);
-  const text=(l.label+' '+ss.map(s=>s.description+' '+s.remarks).join(' ')).toLowerCase();
+ let list=PROJECT.locations.filter(l=>{
+  const ss=locSigns(l), text=(l.label+' '+ss.map(s=>s.description+' '+s.remarks).join(' ')).toLowerCase();
   const attention=ss.some(s=>{const x=signState(s.id);return x.return_trip||x.reason||x.notes});
-  const complete=ss.length>0&&ss.every(s=>signState(s.id).completed||signState(s.id).not_installed);
-  const anchorTypes=ss.map(s=>s.anchor_type);
-  const anchor=anchorTypes.includes('Soil')?'Soil':anchorTypes.includes('Slip-Base')?'Slip-Base':'None';
-  return (!state.active_assignment||(l.route===state.active_assignment.route&&stopPlanDirection(l)===state.active_assignment.direction))
-   &&(r==='all'||l.route===r)
-   &&(d==='all'||stopPlanDirection(l)===d)
-   &&(a==='all'||(a==='anchors'?anchor!=='None':a==='none'?anchor==='None':anchor===a))
-   &&(st==='all'||(st==='complete'?complete:st==='attention'?attention:!complete))
+  return (r==='all'||l.route===r)
+   &&(d==='all'||locPlanDirection(l)===d)
+   &&(a==='all'||(a==='anchors'?locAnchor(l)!=='None':a==='none'?locAnchor(l)==='None':locAnchor(l)===a))
+   &&(st==='all'||(st==='complete'?locComplete(l):st==='attention'?attention:!locComplete(l)))
    &&(!q||text.includes(q));
  });
- list.sort(stopTravelCompare);
- const startId=state.active_assignment?.start_item_id;
- if(startId){
-  const startIndex=list.findIndex(stop=>routeStopSigns(stop).some(sign=>sign.id===startId));
-  if(startIndex>0)list=list.slice(startIndex);
- }
+ list.sort((x,y)=>travelCompare(x,y,locDirection));
  return list;
 }
 function fieldColorClass(l){
- const ss=routeStopSigns(l);
+ const ss=locSigns(l);
  const attention=ss.some(s=>{const x=signState(s.id);return x.return_trip||x.reason||x.notes});
- if(ss.length&&ss.every(s=>signState(s.id).completed)) return 'stop-complete';
- if(ss.some(s=>s.anchor_type==='Soil')) return 'stop-soil';
- if(ss.some(s=>s.anchor_type==='Slip-Base')) return 'stop-slip';
+ if(locComplete(l)) return 'stop-complete';
+ if(locAnchor(l)==='Soil') return 'stop-soil';
+ if(locAnchor(l)==='Slip-Base') return 'stop-slip';
  if(attention) return 'stop-attention';
  return 'stop-incomplete';
 }
-
-let FIELD_LOOKAHEAD=15;
-function showMoreFieldStops(){
- FIELD_LOOKAHEAD+=25;
- renderFieldLocations(currentFieldLocations);
-}
-function resetFieldLookahead(){
- FIELD_LOOKAHEAD=15;
-}
-
 function renderFieldLocations(list){
  currentFieldLocations=list;
  const out=document.getElementById('fieldStops');
- const summary=document.getElementById('fieldSummary');
- const totalSigns=list.reduce((n,l)=>n+routeStopSigns(l).length,0);
- if(summary)summary.textContent=`${list.length} roadway-side stops · ${totalSigns} signs`;
-
- const activeIndex=list.findIndex(l=>!routeStopSigns(l).every(s=>signState(s.id).completed||signState(s.id).not_installed));
+ document.getElementById('fieldSummary').textContent=`${list.length} locations loaded · ${list.reduce((n,l)=>n+l.sign_ids.length,0)} signs`;
+ const activeIndex=list.findIndex(l=>!locResolved(l));
  const first=activeIndex>=0?list[activeIndex]:null;
- const firstCard=document.getElementById('firstStopCard');
- if(firstCard){
-  firstCard.innerHTML=first
-   ?`<h3 style="margin-top:0">Current stop</h3><b>${esc(first.route)} MP ${first.milepost??''}</b><br>${esc(first.label)}<br><a class="route-link" target="_blank" onclick="startDrive('${first._source_location_id||first.id}')" href="https://www.google.com/maps/dir/?api=1&destination=${first.latitude},${first.longitude}&travelmode=driving">Drive to current stop</a>`
-   :'<b>Every loaded stop has been resolved.</b>';
- }
-
- if(!list.length){
-  out.innerHTML='<div class="card">No locations match these filters.</div>';
-  return;
- }
-
- // Render only a practical window. The complete route remains in currentFieldLocations.
- const center=activeIndex>=0?activeIndex:Math.max(0,list.length-1);
- const visibleStart=Math.max(0,center-2);
- const visibleEnd=Math.min(list.length,center+FIELD_LOOKAHEAD+1);
- const visible=list.slice(visibleStart,visibleEnd);
-
- out.innerHTML=visible.map((l,localIdx)=>{
-  const idx=visibleStart+localIdx;
+ document.getElementById('firstStopCard').innerHTML=first
+  ?`<h3 style="margin-top:0">Current stop</h3><b>${esc(first.route)} MP ${first.milepost??''}</b><br>${esc(first.label)}<br><a class="route-link" target="_blank" onclick="startDrive('${first.id}')" href="https://www.google.com/maps/dir/?api=1&destination=${first.latitude},${first.longitude}&travelmode=driving">Drive to current stop</a>`
+  :'<b>Every loaded stop has been resolved.</b>';
+ out.innerHTML=list.map((l,idx)=>{
   const locked=activeIndex>=0&&idx>activeIndex;
   const drive=`https://www.google.com/maps/dir/?api=1&destination=${l.latitude},${l.longitude}&travelmode=driving`;
-  const signs=routeStopSigns(l);
-
+  const signs=locSigns(l);
   if(locked){
    return `<div class="stop-card locked-stop"><h3>Stop ${idx+1} — ${esc(l.route)} MP ${l.milepost??''}</h3>
     <p><b>${esc(l.label)}</b></p>
     <div class="locked-message">Resolve every sign at the current stop before opening this stop.</div>
-    ${signs.map(s=>`<div class="sign-row locked-sign-row"><b>Sign ${esc(s.sign_no)}</b> ${anchorDotHtml(s,true)} · ${esc(s.description)}${s.sign_size?` · ${esc(s.sign_size)}`:''}</div>`).join('')}</div>`;
+    ${signs.map(s=>`<div class="sign-row"><b>Sign ${esc(s.sign_no)}</b> · ${esc(s.description)}${s.sign_size?` · ${esc(s.sign_size)}`:''}</div>`).join('')}</div>`;
   }
-
-  const stopResolved=signs.every(s=>signState(s.id).completed||signState(s.id).not_installed);
-  const stopComplete=signs.every(s=>signState(s.id).completed);
-  const resolvedClass=stopResolved&&!stopComplete?' resolved-not-installed':'';
-
+  const resolvedClass=locResolved(l)&&!locComplete(l)?' resolved-not-installed':'';
   return `<div class="stop-card ${fieldColorClass(l)}${resolvedClass}"><h3>Stop ${idx+1} — ${esc(l.route)} MP ${l.milepost??''}</h3>
    <p><b>${esc(l.label)}</b></p>
-   ${idx===activeIndex?`<a class="route-link" target="_blank" href="${drive}" onclick="startDrive('${l._source_location_id||l.id}')">Drive here</a>`:''}
+   ${idx===activeIndex?`<a class="route-link" target="_blank" href="${drive}" onclick="startDrive('${l.id}')">Drive here</a>`:''}
    ${signs.map(s=>fieldSignHtml(s)).join('')}</div>`;
- }).join('');
-
- if(visibleEnd<list.length){
-  out.innerHTML+=`<div class="card route-window-note"><b>${list.length-visibleEnd} later stops are loaded but hidden for speed.</b><br><button onclick="showMoreFieldStops()">Show next 25 stops</button></div>`;
- }
+ }).join('')||'<div class="card">No locations match these filters.</div>';
 }
-function loadFieldByFilters(){resetFieldLookahead();renderFieldLocations(fieldFilteredLocations())}
+function loadFieldByFilters(){renderFieldLocations(fieldFilteredLocations())}
 function loadSelectedFieldStops(){renderFieldLocations(PROJECT.locations.filter(l=>selected.has(l.id)))}
 function buildFieldRoutes(){
- const list=currentFieldLocations.filter(l=>!routeStopSigns(l).every(s=>signState(s.id).completed||signState(s.id).not_installed));
+ const list=currentFieldLocations.filter(l=>!locResolved(l));
  const out=document.getElementById('fieldRouteLinks');out.innerHTML='';
  if(!list.length){out.textContent='No incomplete field locations are loaded.';return}
  const size=8;let last=null;
@@ -1546,55 +1179,20 @@ function buildFieldRoutes(){
   last=dest;
  }
 }
-
-function anchorClass(sign){
- const type=String(sign?.anchor_type||"None");
- if(type==="Slip-Base")return"anchor-slip";
- if(type==="Soil")return"anchor-soil";
- return"anchor-none";
-}
-function anchorDotHtml(sign,withLabel=false){
- const type=String(sign?.anchor_type||"None");
- const label=withLabel?`<span class="anchor-dot-label">${esc(type)}</span>`:"";
- return `<span class="anchor-dot ${anchorClass(sign)}" title="${esc(type)}"></span>${label}`;
-}
-function normalizedMutcdCode(sign){
- return String(sign?.mutcd||"").trim().replace(/\s+/g,"");
-}
-function mutcdImageUrl(sign){
- const code=normalizedMutcdCode(sign);
- if(!code)return"";
- return `https://commons.wikimedia.org/wiki/Special:Redirect/file/MUTCD_${encodeURIComponent(code)}.svg?width=220`;
-}
-function mutcdImageHtml(sign,compact=false){
- const image=mutcdImageUrl(sign);
- if(!image)return`<div class="mutcd-image-fallback${compact?" compact":""}">${esc(sign?.mutcd||"No preview")}</div>`;
- return `<div class="mutcd-image-wrap${compact?" compact":""}">
-  <img loading="lazy" src="${image}" alt="${esc(sign.mutcd||"MUTCD")} ${esc(sign.description||"sign")}"
-   onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-  <div class="mutcd-image-fallback" style="display:none">${esc(sign.mutcd||"Preview unavailable")}</div>
- </div>`;
-}
-
 function fieldSignHtml(s){
  const st=signState(s.id);
  const noteNeeded=st.not_installed&&!String(st.notes||'').trim();
  return `<div class="sign-row">
- <div class="sign-heading">
-  <div><b>Sign ${esc(s.sign_no)}</b> ${anchorDotHtml(s,true)}</div>
-  <span class="badge">${esc(s.mutcd||"")}</span>
- </div>
- <div class="sign-visual-row">
-  ${mutcdImageHtml(s)}
-  <div class="sign-description"><b>${esc(s.description)}</b><br><span class="note">${esc(s.sign_size||"Size not listed")}</span></div>
- </div>
- <p class="note"><b>Sign face direction:</b> ${esc(s.direction||'Not listed')}<br>
+ <b>Sign ${esc(s.sign_no)}</b> <span class="badge">${esc(s.anchor_type)}</span>
+ <p>${esc(s.description)}</p>
+ <p class="note"><b>Sign size:</b> ${esc(s.sign_size||'Not listed')}<br>
+ <b>Sign face direction:</b> ${esc(s.direction||'Not listed')}<br>
  <b>Posts:</b> ${s.left_post_length!==null&&s.left_post_length!==undefined?`Left ${esc(s.left_post_length)} ft`:''}${s.right_post_length!==null&&s.right_post_length!==undefined?` · Right ${esc(s.right_post_length)} ft`:(s.post_configuration==='Single post'?' · Single post':'')}<br>
  <b>Installation dimension:</b> ${esc(s.installation_dimension??'')}<br>
  <b>Status:</b> ${esc(signStatusText(s.id))}</p>
  <label class="status-choice"><input type="checkbox" ${st.completed?'checked':''} onchange="setInstallStatus('${s.id}','installed',this.checked)"> Installed</label>
  <label class="status-choice"><input type="checkbox" ${st.not_installed?'checked':''} onchange="setInstallStatus('${s.id}','not_installed',this.checked)"> Not installed</label><br>
- 
+ <label>Crew <input value="${esc(st.crew)}" onchange="updateField('${s.id}','crew',this.value)"></label><br>
  <label>Reason <select onchange="updateField('${s.id}','reason',this.value)"><option></option>${['Rock','Utility conflict','Traffic','Missing hardware','Other'].map(x=>`<option ${st.reason===x?'selected':''}>${x}</option>`).join('')}</select></label><br>
  <label><input type="checkbox" ${st.return_trip?'checked':''} onchange="updateField('${s.id}','return_trip',this.checked)"> Return trip required</label><br>
  <label>Optional photo <input type="file" accept="image/*" onchange="attachPhoto('${s.id}',this.files[0])"></label>${state.photos[s.id]?`<img class="photo-preview" src="${state.photos[s.id]}">`:``}<br>
@@ -1639,15 +1237,12 @@ function startDrive(locationId){
  save();
 }
 function endWorkDay(auto=false){
- if(state.workday.active){
-  state.workday.active=false;state.workday.ended_at=new Date().toISOString();
-  addEvent('workday_ended',`Workday ended on ${state.active_assignment?state.active_assignment.route+' '+state.active_assignment.direction:'assignment'}`);
-  save();
- }
- renderCurrentAssignment();
- const btn=[...document.querySelectorAll('nav button')].find(b=>b.textContent.includes('Current Assignment'));
- if(btn)showTab('dashboard',btn);
- if(!auto)alert('Workday ended. Continue Work will resume at the first unresolved sign.');
+ const today=new Date().toISOString().slice(0,10);
+ state.workday[today]=state.workday[today]||{};
+ if(state.workday[today].ended_at&&!auto)return;
+ state.workday[today].ended_at=new Date().toISOString();
+ addEvent('workday_ended',auto?'Workday automatically ended after final loaded sign was completed':'Workday ended manually');
+ save();renderTimeline();
 }
 function resumeRoute(){
  let list=fieldFilteredLocations().filter(l=>!locResolved(l));
@@ -1680,7 +1275,7 @@ function renderMaterials(){
   const posts=Object.entries(g.posts).sort((a,b)=>Number(a[0])-Number(b[0]));
   return `<div class="material-group"><h2>${esc(g.route)} — ${esc(g.direction)}</h2>
    <div class="material-columns">
-    <div><h3>Anchors</h3>${anchors.length?`<table><thead><tr><th>Anchor type</th><th>Quantity</th></tr></thead><tbody>${anchors.map(([a,q])=>`<tr><td><span class="anchor-dot ${a==='Slip-Base'?'anchor-slip':a==='Soil'?'anchor-soil':'anchor-none'}"></span> ${esc(a)}</td><td><b>${q}</b></td></tr>`).join('')}</tbody></table>`:'<p>No anchors required.</p>'}</div>
+    <div><h3>Anchors</h3>${anchors.length?`<table><thead><tr><th>Anchor type</th><th>Quantity</th></tr></thead><tbody>${anchors.map(([a,q])=>`<tr><td>${esc(a)}</td><td><b>${q}</b></td></tr>`).join('')}</tbody></table>`:'<p>No anchors required.</p>'}</div>
     <div><h3>Posts</h3>${posts.length?`<table><thead><tr><th>Post length</th><th>Quantity</th></tr></thead><tbody>${posts.map(([l,q])=>`<tr><td>${esc(l)} ft</td><td><b>${q}</b></td></tr>`).join('')}</tbody></table>`:'<p>No post lengths listed.</p>'}</div>
    </div></div>`;
  }).join('');
@@ -1736,13 +1331,11 @@ function renderPallet(){
  document.getElementById('palletRows').innerHTML=rows.map((s,i)=>`
   <tr>
    <td class="load-seq">${i+1}</td>
-   <td><div class="load-sign-id">${anchorDotHtml(s)} <b>Sign ${esc(s.sign_no)}</b></div>${i<20?mutcdImageHtml(s,true):`<div class="mutcd-image-fallback compact">${esc(s.mutcd||"")}</div>`}</td>
-   <td><b>${esc(s.mutcd||'')}</b><br>${esc(s.description||'')}</td>
+   <td><b>${esc(s.mutcd||'')}</b></td>
+   <td>${esc(s.description||'')}</td>
    <td>${esc(sizeText(s))}</td>
-   <td>${esc(s.anchor_type||'None')}<br>${esc(s.remarks||'')}</td>
+   <td>${esc(s.remarks||'')}</td>
   </tr>`).join('')||'<tr><td colspan="5">No signs match the selected filters.</td></tr>';
- const palletNote=document.getElementById('palletPerformanceNote');
- if(palletNote)palletNote.textContent=rows.length>20?`Showing image previews for the first 20 of ${rows.length} signs. All signs remain in the load list.`:'';
 }
 function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 
@@ -1779,19 +1372,198 @@ function exportKML(){
  return `<b>${s.sign_no}</b> — ${signState(s.id).completed?'Complete':'Incomplete'}<br>Anchor: ${s.anchor_type}<br>${postText}<br>Dimension: ${s.installation_dimension??''}${signState(s.id).notes?'<br>Notes: '+signState(s.id).notes:''}`;
 }).join('<hr>');p+=`<Placemark><name>${esc(l.label)}</name><description><![CDATA[${desc}]]></description><styleUrl>#${sty}</styleUrl><Point><coordinates>${l.longitude},${l.latitude},0</coordinates></Point></Placemark>`}p+='</Document></kml>';download('Select_Signing_Updated.kml',p,'application/vnd.google-earth.kml+xml')
 }
-document.getElementById('projectTitle').textContent=PROJECT.project_name+' · Crew Current Assignment';
-const initialCrewNameInput=document.getElementById('crewName');if(initialCrewNameInput)initialCrewNameInput.value=state.crew||'';
-const initialTimelineDate=document.getElementById('timelineDate');if(initialTimelineDate)initialTimelineDate.value=new Date().toISOString().slice(0,10);
+
+function renderCrewAssignmentDashboard(){
+ const out=document.getElementById('crewAssignmentDashboard');if(!out)return;
+ if(!state.assignments.length){out.innerHTML='<p>No crews assigned.</p>';return}
+ out.innerHTML=`<div style="overflow:auto"><table><thead><tr><th>Crew</th><th>Route</th><th>Status</th><th>Progress</th><th>Remaining</th><th>Attention</th></tr></thead><tbody>${
+ state.assignments.map(a=>{const p=assignmentProgress(a);return `<tr><td><b>${esc(a.crew_name)}</b><br>${esc(a.crew_lead||'')}</td><td>${esc(a.route)} ${esc(a.direction)}</td><td>${p.remaining===0?'Complete':'Assigned'}</td><td>${p.resolved} / ${p.total} (${p.pct}%)</td><td>${p.remaining}</td><td>${p.attention}</td></tr>`}).join('')
+ }</tbody></table></div>`;
+}
+const originalRenderDashboard=renderDashboard;
+renderDashboard=function(){originalRenderDashboard();renderCrewAssignmentDashboard();};
+
+document.getElementById('projectTitle').textContent=PROJECT.project_name+' · v2.0 Crew Test';document.getElementById('crewName').value=state.crew||'';document.getElementById('timelineDate').value=new Date().toISOString().slice(0,10);
 (async()=>{
  if(!v2LoadStoredSession()){v2LoginOverlay();return}
  try{await v2LoadProfile()}catch(e){localStorage.removeItem("select-signing-v2-session");v2LoginOverlay();return}
- v2InstallCrewHeader();
+ if(!["admin","supervisor"].includes(V2_PROFILE.role)){alert("Office test requires Admin or Supervisor access.");v2SignOut();return}
+ v2InstallOfficeHeader();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
- if(status)status.textContent=count?`Plan-order routing active · roadway-side blocks · ${count} audited signs`:"Plan-order routing fallback active";
- initFilters();applyAssignmentFilters();renderDashboard();renderCurrentAssignment();renderCrewRequestHistory();
- await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
+ if(status)status.textContent=count?`Roadway-side audit active · ${count} signs loaded`:"Roadway-side audit unavailable · fallback routing active";
+ initFilters();refreshSavedCrewControls();renderCrewRequests();initAssignmentControls();renderDashboard();officeInitAllSigns();
+ refreshLiveProgress(true);v2RefreshClaims();setInterval(()=>refreshLiveProgress(true),30000);setInterval(v2RefreshClaims,30000);
 })();
+
+function officeSignDirection(sign){
+ if(typeof signPlanDirection==="function")return signPlanDirection(sign);
+ return sign.traffic_direction||sign.direction||"Unknown";
+}
+function officeAnchorClass(sign){
+ if(sign.anchor_type==="Slip-Base")return"office-anchor-slip";
+ if(sign.anchor_type==="Soil")return"office-anchor-soil";
+ return"office-anchor-none";
+}
+function officeStatusInfo(sign){
+ const st=state.signs?.[sign.id]||{};
+ if(st.completed)return{key:"complete",label:"Installed"};
+ if(st.not_installed)return{key:"not-installed",label:"Not installed"};
+ if(st.reason||st.return_trip)return{key:"attention",label:st.reason||"Needs attention"};
+ return{key:"pending",label:"Pending"};
+}
+function officeInitAllSigns(){
+ const route=document.getElementById("officeSignsRoute");
+ if(!route)return;
+ const routes=[...new Set(PROJECT.signs.map(s=>s.route))].sort();
+ route.innerHTML=routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");
+ officePopulateDirections();
+ officeRenderAllSigns();
+}
+function officePopulateDirections(){
+ const route=document.getElementById("officeSignsRoute");
+ const direction=document.getElementById("officeSignsDirection");
+ if(!route||!direction)return;
+ const dirs=[...new Set(PROJECT.signs.filter(s=>s.route===route.value).map(officeSignDirection).filter(Boolean))];
+ direction.innerHTML=['all',...dirs].map(d=>`<option value="${esc(d)}">${d==='all'?'All roadway sides':esc(d)}</option>`).join("");
+}
+function officeFilteredSigns(){
+ const route=document.getElementById("officeSignsRoute")?.value||"";
+ const direction=document.getElementById("officeSignsDirection")?.value||"all";
+ const anchor=document.getElementById("officeSignsAnchor")?.value||"all";
+ const status=document.getElementById("officeSignsStatus")?.value||"all";
+ const search=(document.getElementById("officeSignsSearch")?.value||"").trim().toLowerCase();
+
+ return PROJECT.signs.filter(sign=>{
+  const st=officeStatusInfo(sign);
+  const hasAnchor=sign.anchor_type&&sign.anchor_type!=="None";
+  const anchorMatch=
+   anchor==="all"||
+   (anchor==="anchors"&&hasAnchor)||
+   (anchor==="none"&&!hasAnchor)||
+   sign.anchor_type===anchor;
+  const statusMatch=
+   status==="all"||
+   (status==="pending"&&st.key==="pending")||
+   (status==="complete"&&st.key==="complete")||
+   (status==="not_installed"&&st.key==="not-installed")||
+   (status==="attention"&&st.key==="attention");
+  const haystack=`${sign.sign_no} ${sign.mutcd||""} ${sign.description||""} ${sign.remarks||""}`.toLowerCase();
+  return sign.route===route
+   &&(direction==="all"||officeSignDirection(sign)===direction)
+   &&anchorMatch&&statusMatch&&(!search||haystack.includes(search));
+ }).sort((a,b)=>{
+  const ai=PROJECT.signs.indexOf(a),bi=PROJECT.signs.indexOf(b);
+  return ai-bi;
+ });
+}
+function officeRenderAllSigns(){
+ const list=document.getElementById("officeAllSignsList");
+ const summary=document.getElementById("officeAllSignsSummary");
+ if(!list||!summary)return;
+
+ const signs=officeFilteredSigns();
+ const route=document.getElementById("officeSignsRoute")?.value||"";
+ const direction=document.getElementById("officeSignsDirection")?.value||"all";
+ const complete=signs.filter(s=>officeStatusInfo(s).key==="complete").length;
+ const anchors=signs.filter(s=>s.anchor_type&&s.anchor_type!=="None").length;
+ summary.textContent=`${route} · ${direction==="all"?"All sides":direction} · ${signs.length} signs · ${anchors} anchors · ${complete} installed`;
+
+ if(!signs.length){
+  list.innerHTML='<div class="card">No signs match the selected filters.</div>';
+  return;
+ }
+
+ const groups={};
+ for(const sign of signs){
+  const key=officeSignDirection(sign)||"Unknown";
+  (groups[key]||(groups[key]=[])).push(sign);
+ }
+
+ list.innerHTML=Object.entries(groups).map(([dir,rows],groupIndex)=>`
+  <details class="office-route-section" ${groupIndex===0?'open':''}>
+   <summary>${esc(route)} · ${esc(dir)} · ${rows.length} signs</summary>
+   <div class="office-sign-table-wrap">
+    <table class="office-sign-table">
+     <thead><tr>
+      <th>Sign</th><th>Anchor</th><th>MUTCD</th><th>Description</th><th>MP</th><th>Face</th><th>Status</th><th>Actions</th>
+     </tr></thead>
+     <tbody>${rows.map(sign=>{
+      const st=officeStatusInfo(sign);
+      return `<tr>
+       <td><b>${esc(sign.sign_no)}</b></td>
+       <td><span class="office-anchor-dot ${officeAnchorClass(sign)}"></span>${esc(sign.anchor_type||"None")}</td>
+       <td>${esc(sign.mutcd||"")}</td>
+       <td>${esc(sign.description||"")}<br><small>${esc(sign.remarks||"")}</small></td>
+       <td>${sign.milepost??""}</td>
+       <td>${esc(sign.direction||"")}</td>
+       <td><span class="office-status-pill ${st.key}">${esc(st.label)}</span></td>
+       <td><div class="office-sign-actions">
+        <button onclick="officeOpenSignEditor('${sign.id}')">Edit status</button>
+        <a class="route-link" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${sign.latitude},${sign.longitude}">Map</a>
+       </div></td>
+      </tr>`;
+     }).join("")}</tbody>
+    </table>
+   </div>
+  </details>
+ `).join("");
+}
+function officeOpenSignEditor(signId){
+ const sign=PROJECT.signs.find(s=>s.id===signId);
+ if(!sign)return;
+ let modal=document.getElementById("officeSignEditModal");
+ if(!modal){
+  modal=document.createElement("div");
+  modal.id="officeSignEditModal";
+  modal.className="office-edit-modal";
+  modal.innerHTML=`<div class="office-edit-card">
+   <h2>Edit Sign Status</h2>
+   <div id="officeEditSignDetails"></div>
+   <label>Status<select id="officeEditStatus">
+    <option value="pending">Pending / reopen</option>
+    <option value="installed">Installed</option>
+    <option value="not_installed">Not installed</option>
+    <option value="attention">Needs attention</option>
+   </select></label>
+   <label>Notes<textarea id="officeEditNotes" rows="4"></textarea></label>
+   <button class="primary" onclick="officeSaveSignEditor()">Save</button>
+   <button onclick="document.getElementById('officeSignEditModal').style.display='none'">Cancel</button>
+  </div>`;
+  document.body.appendChild(modal);
+ }
+ modal.dataset.signId=signId;
+ const st=state.signs?.[signId]||{};
+ document.getElementById("officeEditSignDetails").innerHTML=`<b>${esc(sign.route)} · Sign ${esc(sign.sign_no)}</b><br>${esc(sign.mutcd||"")} — ${esc(sign.description||"")}`;
+ document.getElementById("officeEditStatus").value=st.completed?"installed":st.not_installed?"not_installed":(st.reason||st.return_trip)?"attention":"pending";
+ document.getElementById("officeEditNotes").value=st.notes||"";
+ modal.style.display="flex";
+}
+function officeSaveSignEditor(){
+ const modal=document.getElementById("officeSignEditModal");
+ const signId=modal?.dataset.signId;
+ const sign=PROJECT.signs.find(s=>s.id===signId);
+ if(!sign)return;
+ const status=document.getElementById("officeEditStatus").value;
+ const notes=document.getElementById("officeEditNotes").value.trim();
+ const st=state.signs?.[signId]||{};
+
+ st.completed=status==="installed";
+ st.not_installed=status==="not_installed";
+ st.reason=status==="attention"?"Needs attention":"";
+ st.notes=notes;
+ st.completed_at=status==="pending"?"":new Date().toISOString();
+ st.completed_by=status==="pending"?"":(V2_PROFILE?.full_name||"Office");
+ if(status==="pending"){
+  st.completed=false;st.not_installed=false;st.reason="";st.return_trip=false;
+ }
+ state.signs[signId]=st;
+ save();
+ modal.style.display="none";
+ officeRenderAllSigns();
+ if(typeof renderDashboard==="function")renderDashboard();
+}
+
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.04.01</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.1 · Build 2026.08.04.01</div>
 </body></html>
