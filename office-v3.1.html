@@ -165,6 +165,27 @@ html{scroll-padding-top:145px}
  .office-sign-manager-head{display:block}
 }
 
+
+.office-sort-header{
+ border:0;
+ background:transparent;
+ color:inherit;
+ font:inherit;
+ font-weight:900;
+ padding:0;
+ cursor:pointer;
+ white-space:nowrap;
+}
+.office-sort-header:hover{text-decoration:underline}
+.office-sign-table th{z-index:4}
+.office-sign-table .sticky-col{position:sticky;background:white;z-index:3}
+.office-sign-table th.sticky-col{background:#f97316;z-index:6}
+.office-sign-table .sticky-sign{left:0;min-width:85px}
+.office-sign-table .sticky-mp{left:85px;min-width:85px}
+.office-sign-table .sticky-status{right:0;min-width:125px}
+.office-sign-table tr:hover .sticky-col{background:#fff7ed}
+.office-sign-table thead .sticky-col{background:#f97316}
+
 </style>
 </head>
 <body>
@@ -429,7 +450,7 @@ function initializeIA1NorthboundStatus(force=false){
     return_trip:false,
     completed_at:current.completed_at||new Date().toISOString(),
     completed_by:current.completed_by||"Project initialization",
-    notes:current.notes||"IA-1 NB no-anchor work completed before app rollout"
+    notes:current.notes||""
    };
   }
  }
@@ -1441,6 +1462,102 @@ document.getElementById('projectTitle').textContent=PROJECT.project_name+' · v2
  refreshLiveProgress(true);v2RefreshClaims();setInterval(()=>refreshLiveProgress(true),30000);setInterval(v2RefreshClaims,30000);
 })();
 
+
+const OFFICE_ALL_SIGNS_VIEW_KEY="select-signing-office-all-signs-view-v1";
+let OFFICE_SIGN_SORT={column:"plan",direction:"default"};
+
+function officeLoadAllSignsView(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(OFFICE_ALL_SIGNS_VIEW_KEY)||"null");
+  if(!saved)return;
+  OFFICE_SIGN_SORT=saved.sort||OFFICE_SIGN_SORT;
+  const set=(id,value)=>{
+   const el=document.getElementById(id);
+   if(el&&value!==undefined&&value!==null)el.value=value;
+  };
+  set("officeSignsRoute",saved.route);
+  officePopulateDirections();
+  set("officeSignsDirection",saved.direction);
+  set("officeSignsAnchor",saved.anchor);
+  set("officeSignsStatus",saved.status);
+  set("officeSignsSearch",saved.search);
+ }catch(error){
+  console.error("Could not restore All Signs view.",error);
+ }
+}
+
+function officeSaveAllSignsView(){
+ try{
+  localStorage.setItem(OFFICE_ALL_SIGNS_VIEW_KEY,JSON.stringify({
+   route:document.getElementById("officeSignsRoute")?.value||"",
+   direction:document.getElementById("officeSignsDirection")?.value||"all",
+   anchor:document.getElementById("officeSignsAnchor")?.value||"all",
+   status:document.getElementById("officeSignsStatus")?.value||"all",
+   search:document.getElementById("officeSignsSearch")?.value||"",
+   sort:OFFICE_SIGN_SORT
+  }));
+ }catch(error){
+  console.error("Could not save All Signs view.",error);
+ }
+}
+
+function officeCycleSort(column){
+ if(OFFICE_SIGN_SORT.column!==column){
+  OFFICE_SIGN_SORT={column,direction:"asc"};
+ }else if(OFFICE_SIGN_SORT.direction==="asc"){
+  OFFICE_SIGN_SORT.direction="desc";
+ }else{
+  OFFICE_SIGN_SORT={column:"plan",direction:"default"};
+ }
+ officeRenderAllSigns();
+}
+
+function officeSortArrow(column){
+ if(OFFICE_SIGN_SORT.column!==column)return"";
+ return OFFICE_SIGN_SORT.direction==="asc"?" ▲":OFFICE_SIGN_SORT.direction==="desc"?" ▼":"";
+}
+
+function officeSortValue(sign,column){
+ const status=officeStatusInfo(sign);
+ switch(column){
+  case"sign":return Number(sign.sign_no)||0;
+  case"mp":return Number(sign.milepost)||0;
+  case"route":return String(sign.route||"").toLowerCase();
+  case"direction":return String(officeSignDirection(sign)||"").toLowerCase();
+  case"mutcd":return String(sign.mutcd||"").toLowerCase();
+  case"description":return String(sign.description||"").toLowerCase();
+  case"remarks":return String(sign.remarks||"").toLowerCase();
+  case"anchor":{
+   const order={"None":0,"Soil":1,"Slip-Base":2};
+   return order[sign.anchor_type||"None"]??9;
+  }
+  case"status":{
+   const order={pending:0,complete:1,"not-installed":2,attention:3};
+   return order[status.key]??9;
+  }
+  case"face":return String(sign.direction||"").toLowerCase();
+  default:return PROJECT.signs.indexOf(sign);
+ }
+}
+
+function officeApplySort(signs){
+ if(OFFICE_SIGN_SORT.column==="plan"||OFFICE_SIGN_SORT.direction==="default"){
+  return [...signs].sort((a,b)=>PROJECT.signs.indexOf(a)-PROJECT.signs.indexOf(b));
+ }
+ const multiplier=OFFICE_SIGN_SORT.direction==="desc"?-1:1;
+ const column=OFFICE_SIGN_SORT.column;
+ return [...signs].sort((a,b)=>{
+  const av=officeSortValue(a,column);
+  const bv=officeSortValue(b,column);
+  if(typeof av==="number"&&typeof bv==="number")return(av-bv)*multiplier;
+  return String(av).localeCompare(String(bv),undefined,{numeric:true,sensitivity:"base"})*multiplier;
+ });
+}
+
+function officeSortHeader(label,column){
+ return `<button class="office-sort-header" onclick="officeCycleSort('${column}')">${label}${officeSortArrow(column)}</button>`;
+}
+
 function officeSignDirection(sign){
  if(typeof signPlanDirection==="function")return signPlanDirection(sign);
  return sign.traffic_direction||sign.direction||"Unknown";
@@ -1463,6 +1580,7 @@ function officeInitAllSigns(){
  const routes=[...new Set(PROJECT.signs.map(s=>s.route))].sort();
  route.innerHTML=routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");
  officePopulateDirections();
+ officeLoadAllSignsView();
  officeRenderAllSigns();
 }
 function officePopulateDirections(){
@@ -1479,7 +1597,7 @@ function officeFilteredSigns(){
  const status=document.getElementById("officeSignsStatus")?.value||"all";
  const search=(document.getElementById("officeSignsSearch")?.value||"").trim().toLowerCase();
 
- return PROJECT.signs.filter(sign=>{
+ const filtered=PROJECT.signs.filter(sign=>{
   const st=officeStatusInfo(sign);
   const hasAnchor=sign.anchor_type&&sign.anchor_type!=="None";
   const anchorMatch=
@@ -1494,15 +1612,18 @@ function officeFilteredSigns(){
    (status==="not_installed"&&st.key==="not-installed")||
    (status==="attention"&&st.key==="attention");
   const haystack=`${sign.sign_no} ${sign.mutcd||""} ${sign.description||""} ${sign.remarks||""}`.toLowerCase();
+
   return sign.route===route
    &&(direction==="all"||officeSignDirection(sign)===direction)
-   &&anchorMatch&&statusMatch&&(!search||haystack.includes(search));
- }).sort((a,b)=>{
-  const ai=PROJECT.signs.indexOf(a),bi=PROJECT.signs.indexOf(b);
-  return ai-bi;
+   &&anchorMatch
+   &&statusMatch
+   &&(!search||haystack.includes(search));
  });
+
+ return officeApplySort(filtered);
 }
 function officeRenderAllSigns(){
+ officeSaveAllSignsView();
  const list=document.getElementById("officeAllSignsList");
  const summary=document.getElementById("officeAllSignsSummary");
  if(!list||!summary)return;
@@ -1531,18 +1652,31 @@ function officeRenderAllSigns(){
    <div class="office-sign-table-wrap">
     <table class="office-sign-table">
      <thead><tr>
-      <th>Sign</th><th>Anchor</th><th>MUTCD</th><th>Description</th><th>MP</th><th>Face</th><th>Status</th><th>Actions</th>
+      <th class="sticky-col sticky-sign">${officeSortHeader("Sign #","sign")}</th>
+      <th class="sticky-col sticky-mp">${officeSortHeader("MP","mp")}</th>
+      <th>${officeSortHeader("Route","route")}</th>
+      <th>${officeSortHeader("Roadway Side","direction")}</th>
+      <th>${officeSortHeader("Anchor","anchor")}</th>
+      <th>${officeSortHeader("MUTCD","mutcd")}</th>
+      <th>${officeSortHeader("Description","description")}</th>
+      <th>${officeSortHeader("Plan Remarks (DW)","remarks")}</th>
+      <th>${officeSortHeader("Face","face")}</th>
+      <th class="sticky-col sticky-status">${officeSortHeader("Status","status")}</th>
+      <th>Actions</th>
      </tr></thead>
      <tbody>${rows.map(sign=>{
       const st=officeStatusInfo(sign);
       return `<tr>
-       <td><b>${esc(sign.sign_no)}</b></td>
+       <td class="sticky-col sticky-sign"><b>${esc(sign.sign_no)}</b></td>
+       <td class="sticky-col sticky-mp">${sign.milepost??""}</td>
+       <td>${esc(sign.route||"")}</td>
+       <td>${esc(officeSignDirection(sign)||"")}</td>
        <td><span class="office-anchor-dot ${officeAnchorClass(sign)}"></span>${esc(sign.anchor_type||"None")}</td>
        <td>${esc(sign.mutcd||"")}</td>
-       <td>${esc(sign.description||"")}<br><small>${esc(sign.remarks||"")}</small></td>
-       <td>${sign.milepost??""}</td>
+       <td>${esc(sign.description||"")}</td>
+       <td>${esc(sign.remarks||"")}</td>
        <td>${esc(sign.direction||"")}</td>
-       <td><span class="office-status-pill ${st.key}">${esc(st.label)}</span></td>
+       <td class="sticky-col sticky-status"><span class="office-status-pill ${st.key}">${esc(st.label)}</span></td>
        <td><div class="office-sign-actions">
         <button onclick="officeOpenSignEditor('${sign.id}')">Edit status</button>
         <a class="route-link" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${sign.latitude},${sign.longitude}">Map</a>
@@ -1711,5 +1845,5 @@ function officeResetIA1NBStatuses(){
 }
 
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.1 · Build 2026.08.05.04</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.2 · Build 2026.08.05.06</div>
 </body></html>
