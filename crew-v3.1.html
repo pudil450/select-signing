@@ -236,6 +236,64 @@ html{scroll-padding-top:155px}
  background:#f8fafc;
 }
 
+
+.extra-work-panel{
+ margin-top:12px;
+ border:2px solid #111;
+ border-radius:11px;
+ overflow:hidden;
+ background:#fff;
+}
+.extra-work-panel summary{
+ cursor:pointer;
+ list-style:none;
+ padding:12px 14px;
+ background:#fff7ed;
+ border-left:7px solid #f97316;
+ font-weight:900;
+}
+.extra-work-panel summary::-webkit-details-marker{display:none}
+.extra-work-badge{
+ float:right;
+ background:#171717;
+ color:#ffff00;
+ border:1px solid #ffff00;
+ border-radius:999px;
+ padding:3px 7px;
+ font-size:11px;
+}
+.extra-work-fields{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(150px,1fr));
+ gap:10px;
+ padding:13px;
+}
+.extra-work-fields label{
+ display:block;
+ font-weight:800;
+}
+.extra-work-fields input,
+.extra-work-fields select,
+.extra-work-fields textarea{
+ display:block;
+ width:100%;
+ margin-top:5px;
+}
+.extra-work-fields label:nth-child(4){
+ grid-column:1/-1;
+}
+.extra-work-actions{
+ grid-column:1/-1;
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap;
+}
+@media(max-width:760px){
+ .extra-work-fields{grid-template-columns:1fr}
+ .extra-work-fields label:nth-child(4),
+ .extra-work-actions{grid-column:1}
+}
+
 </style>
 </head>
 <body>
@@ -465,7 +523,7 @@ function initializeIA1NorthboundStatus(force=false){
     return_trip:false,
     completed_at:current.completed_at||new Date().toISOString(),
     completed_by:current.completed_by||"Project initialization",
-    notes:current.notes||"IA-1 NB no-anchor work completed before app rollout"
+    notes:current.notes||""
    };
   }
  }
@@ -870,6 +928,7 @@ async function v2ReleaseRoute(showMessage=true){
 }
 async function v2LoadMyClaim(){
  await loadOfficeSignOverrides();
+ await loadExtraWork();
  const r=await fetch(LIVE_SUPABASE_URL+"/rest/v1/route_claims?user_id=eq."+V2_SESSION.user.id+"&status=eq.active&select=*&limit=1",{headers:v2AuthHeaders()});
  if(!r.ok)return;
  const rows=await r.json();if(!rows.length)return;
@@ -1736,6 +1795,188 @@ function mutcdImageHtml(sign,compact=false){
  </div>`;
 }
 
+
+let EXTRA_WORK_BY_SIGN={};
+
+function extraWorkForSign(signId){
+ return EXTRA_WORK_BY_SIGN[signId]||{
+  sign_id:signId,
+  added_anchor_type:"",
+  added_post_lf:"",
+  remove_assembly_qty:"",
+  notes:""
+ };
+}
+
+function hasExtraWork(signId){
+ const row=extraWorkForSign(signId);
+ return !!row.added_anchor_type||
+  Number(row.added_post_lf)>0||
+  Number(row.remove_assembly_qty)>0||
+  !!String(row.notes||"").trim();
+}
+
+async function loadExtraWork(){
+ if(!V2_SESSION)return 0;
+ try{
+  const response=await fetch(
+   LIVE_SUPABASE_URL+
+   "/rest/v1/sign_extra_work"+
+   "?select=sign_id,sign_no,route,added_anchor_type,added_post_lf,remove_assembly_qty,notes,entered_by_name,updated_at",
+   {headers:v2AuthHeaders()}
+  );
+  if(!response.ok)throw new Error(await response.text());
+
+  const rows=await response.json();
+  EXTRA_WORK_BY_SIGN={};
+  for(const row of rows)EXTRA_WORK_BY_SIGN[row.sign_id]=row;
+  return rows.length;
+ }catch(error){
+  console.error("Could not load extra work.",error);
+  return 0;
+ }
+}
+
+function updateExtraWorkDraft(signId,key,value){
+ const row=extraWorkForSign(signId);
+ row[key]=value;
+ EXTRA_WORK_BY_SIGN[signId]=row;
+}
+
+async function saveExtraWork(signId){
+ const sign=PROJECT.signs.find(s=>s.id===signId);
+ if(!sign)return;
+
+ const row=extraWorkForSign(signId);
+ const anchor=String(row.added_anchor_type||"");
+ const postLf=Number(row.added_post_lf||0);
+ const removeQty=Number(row.remove_assembly_qty||0);
+ const notes=String(row.notes||"").trim();
+
+ if(anchor && !["Soil","Slip-Base"].includes(anchor)){
+  alert("Added anchor must be Soil or Slip-Base.");
+  return;
+ }
+ if(postLf<0 || removeQty<0){
+  alert("Extra-work quantities cannot be negative.");
+  return;
+ }
+ if(!anchor && postLf<=0 && removeQty<=0 && !notes){
+  alert("Enter at least one extra-work item before saving.");
+  return;
+ }
+
+ const payload={
+  sign_id:sign.id,
+  sign_no:String(sign.sign_no),
+  route:sign.route,
+  roadway_side:typeof signPlanDirection==="function"
+   ?signPlanDirection(sign)
+   :(sign.traffic_direction||sign.direction||""),
+  added_anchor_type:anchor||null,
+  added_post_lf:postLf||0,
+  remove_assembly_qty:Math.trunc(removeQty)||0,
+  notes,
+  entered_by:V2_SESSION?.user?.id||null,
+  entered_by_name:V2_PROFILE?.full_name||state.crew||"Crew",
+  updated_at:new Date().toISOString()
+ };
+
+ try{
+  const response=await fetch(
+   LIVE_SUPABASE_URL+"/rest/v1/sign_extra_work?on_conflict=sign_id",
+   {
+    method:"POST",
+    headers:{
+     ...v2AuthHeaders(),
+     "Prefer":"resolution=merge-duplicates,return=representation"
+    },
+    body:JSON.stringify(payload)
+   }
+  );
+  if(!response.ok)throw new Error(await response.text());
+
+  const saved=(await response.json())[0]||payload;
+  EXTRA_WORK_BY_SIGN[signId]=saved;
+  if(typeof v3Toast==="function")v3Toast(`Extra work saved for Sign ${sign.sign_no}`);
+  renderFieldLocations(currentFieldLocations);
+ }catch(error){
+  console.error(error);
+  alert("Could not save extra work: "+error.message);
+ }
+}
+
+async function clearExtraWork(signId){
+ const sign=PROJECT.signs.find(s=>s.id===signId);
+ if(!sign)return;
+ if(!confirm(`Clear all extra work recorded for Sign ${sign.sign_no}?`))return;
+
+ try{
+  const response=await fetch(
+   LIVE_SUPABASE_URL+
+   "/rest/v1/sign_extra_work?sign_id=eq."+
+   encodeURIComponent(signId),
+   {
+    method:"DELETE",
+    headers:{...v2AuthHeaders(),"Prefer":"return=minimal"}
+   }
+  );
+  if(!response.ok)throw new Error(await response.text());
+  delete EXTRA_WORK_BY_SIGN[signId];
+  if(typeof v3Toast==="function")v3Toast(`Extra work cleared for Sign ${sign.sign_no}`);
+  renderFieldLocations(currentFieldLocations);
+ }catch(error){
+  console.error(error);
+  alert("Could not clear extra work: "+error.message);
+ }
+}
+
+function extraWorkHtml(sign){
+ const row=extraWorkForSign(sign.id);
+ const saved=hasExtraWork(sign.id);
+
+ return `<details class="extra-work-panel" ${saved?"open":""}>
+  <summary>
+   Extra Work — Not on Plans
+   ${saved?'<span class="extra-work-badge">RECORDED</span>':''}
+  </summary>
+  <div class="extra-work-fields">
+   <label>Added anchor
+    <select onchange="updateExtraWorkDraft('${sign.id}','added_anchor_type',this.value)">
+     <option value="">Select only if added</option>
+     <option value="Soil" ${row.added_anchor_type==="Soil"?"selected":""}>Soil</option>
+     <option value="Slip-Base" ${row.added_anchor_type==="Slip-Base"?"selected":""}>Slip-Base</option>
+    </select>
+   </label>
+
+   <label>Added post — linear feet
+    <input type="number" min="0" step="0.1"
+     value="${esc(row.added_post_lf??"")}"
+     placeholder="Example: 28"
+     onchange="updateExtraWorkDraft('${sign.id}','added_post_lf',this.value)">
+   </label>
+
+   <label>Remove assembly — quantity
+    <input type="number" min="0" step="1"
+     value="${esc(row.remove_assembly_qty??"")}"
+     placeholder="Example: 1"
+     onchange="updateExtraWorkDraft('${sign.id}','remove_assembly_qty',this.value)">
+   </label>
+
+   <label>Extra-work notes
+    <textarea rows="2"
+     placeholder="Reason or field details"
+     onchange="updateExtraWorkDraft('${sign.id}','notes',this.value)">${esc(row.notes||"")}</textarea>
+   </label>
+
+   <div class="extra-work-actions">
+    <button type="button" class="primary" onclick="saveExtraWork('${sign.id}')">Save Extra Work</button>
+    ${saved?`<button type="button" onclick="clearExtraWork('${sign.id}')">Clear</button>`:""}
+   </div>
+  </div>
+ </details>`;
+}
+
 function fieldSignHtml(s){
  const st=signState(s.id);
  const noteNeeded=st.not_installed&&!String(st.notes||'').trim();
@@ -1773,6 +2014,7 @@ function fieldSignHtml(s){
    </div>
   </details>
  </div>
+ ${extraWorkHtml(s)}
  </div>`;
 }
 function setInstallStatus(id,status,val){
@@ -1961,6 +2203,7 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  v2InstallCrewHeader();
  initializeIA1NorthboundStatus();
  await loadOfficeSignOverrides();
+ await loadExtraWork();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
  if(status)status.textContent=count?`Plan-order routing active · roadway-side blocks · ${count} audited signs`:"Plan-order routing fallback active";
@@ -1968,5 +2211,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.05</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.07</div>
 </body></html>
