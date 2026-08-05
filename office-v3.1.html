@@ -133,7 +133,7 @@ input,select,textarea{border:1px solid #cfd4da;border-radius:8px;background:whit
 .office-sign-filters select,.office-sign-filters input{width:100%;margin-top:5px}
 .office-anchor-legend{display:flex;gap:16px;flex-wrap:wrap;padding:10px 12px;background:#f8fafc;border:1px solid #d1d5db;border-radius:9px;margin:12px 0;font-size:13px;font-weight:800}
 .office-anchor-dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:middle;margin:0 5px 2px 0;border:2px solid white;box-shadow:0 0 0 1px #555}
-.office-anchor-slip{background:#ff8000}
+.office-anchor-slip{background:#ffff00;border:2px solid #111}
 .office-anchor-soil{background:#0000ff}
 .office-anchor-none{background:#9ca3af}
 .office-route-section{border:1px solid #d1d5db;border-radius:12px;margin:12px 0;overflow:hidden;background:white}
@@ -381,10 +381,11 @@ html{scroll-padding-top:145px}
    <label>Search
     <input id="officeSignsSearch" placeholder="Sign number or description" oninput="officeRenderAllSigns()">
    </label>
+   <button class="primary" onclick="officeResetIA1NBStatuses()">Set IA-1 NB Job Status</button>
   </div>
 
   <div class="office-anchor-legend">
-   <span><i class="office-anchor-dot office-anchor-slip"></i> Slip-Base (Earth orange)</span>
+   <span><i class="office-anchor-dot office-anchor-slip"></i> Slip-Base (bright yellow)</span>
    <span><i class="office-anchor-dot office-anchor-soil"></i> Soil (Earth blue)</span>
    <span><i class="office-anchor-dot office-anchor-none"></i> No anchor</span>
   </div>
@@ -395,6 +396,48 @@ html{scroll-padding-top:145px}
 </main>
 
 <script>
+
+const IA1_NB_STATUS_INIT_KEY="select-signing-ia1-nb-initialized-v1";
+
+function initializeIA1NorthboundStatus(force=false){
+ if(!force && localStorage.getItem(IA1_NB_STATUS_INIT_KEY)==="yes")return false;
+
+ for(const sign of PROJECT.signs){
+  const signNo=Number(sign.sign_no);
+  if(sign.route!=="IA-1" || !Number.isFinite(signNo) || signNo<1 || signNo>498)continue;
+
+  const current=state.signs[sign.id]||{};
+  const hasAnchor=sign.anchor_type==="Soil" || sign.anchor_type==="Slip-Base";
+
+  if(hasAnchor){
+   state.signs[sign.id]={
+    ...current,
+    completed:false,
+    not_installed:false,
+    reason:"",
+    return_trip:false,
+    completed_at:"",
+    completed_by:""
+   };
+  }else{
+   state.signs[sign.id]={
+    ...current,
+    completed:true,
+    not_installed:false,
+    reason:"",
+    return_trip:false,
+    completed_at:current.completed_at||new Date().toISOString(),
+    completed_by:current.completed_by||"Project initialization",
+    notes:current.notes||"IA-1 NB no-anchor work completed before app rollout"
+   };
+  }
+ }
+
+ localStorage.setItem(IA1_NB_STATUS_INIT_KEY,"yes");
+ localStorage.setItem(KEY,JSON.stringify(state));
+ return true;
+}
+
 
 function v3Toast(message){
  const old=document.querySelector(".v3-toast");if(old)old.remove();
@@ -1389,6 +1432,7 @@ document.getElementById('projectTitle').textContent=PROJECT.project_name+' · v2
  try{await v2LoadProfile()}catch(e){localStorage.removeItem("select-signing-v2-session");v2LoginOverlay();return}
  if(!["admin","supervisor"].includes(V2_PROFILE.role)){alert("Office test requires Admin or Supervisor access.");v2SignOut();return}
  v2InstallOfficeHeader();
+ initializeIA1NorthboundStatus();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
  if(status)status.textContent=count?`Roadway-side audit active · ${count} signs loaded`:"Roadway-side audit unavailable · fallback routing active";
@@ -1564,6 +1608,22 @@ function officeSaveSignEditor(){
  if(typeof renderDashboard==="function")renderDashboard();
 }
 
+
+function officeResetIA1NBStatuses(){
+ const ok=confirm(
+  "Set IA-1 Northbound status now?\n\n"+
+  "No-anchor signs: Installed\n"+
+  "Soil and Slip-Base signs: Pending"
+ );
+ if(!ok)return;
+
+ localStorage.removeItem(IA1_NB_STATUS_INIT_KEY);
+ initializeIA1NorthboundStatus(true);
+ officeRenderAllSigns();
+ if(typeof renderDashboard==="function")renderDashboard();
+ alert("IA-1 Northbound status updated.");
+}
+
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.1 · Build 2026.08.04.01</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.1 · Build 2026.08.04.03</div>
 </body></html>
