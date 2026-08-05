@@ -294,6 +294,36 @@ html{scroll-padding-top:155px}
  .extra-work-actions{grid-column:1}
 }
 
+
+.mutcd-generated-fallback{
+ width:100%;
+ height:100%;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ text-align:center;
+ gap:6px;
+ background:#fff;
+ color:#111;
+ border:3px solid #111;
+ border-radius:8px;
+ padding:7px;
+}
+.mutcd-generated-code{
+ font-size:17px;
+ font-weight:900;
+}
+.mutcd-generated-description{
+ font-size:11px;
+ line-height:1.15;
+ font-weight:800;
+ max-height:48px;
+ overflow:hidden;
+}
+.mutcd-image-wrap.compact .mutcd-generated-code{font-size:11px}
+.mutcd-image-wrap.compact .mutcd-generated-description{font-size:8px;max-height:30px}
+
 </style>
 </head>
 <body>
@@ -779,6 +809,9 @@ function v2FillStartSigns(){
  const signs=PROJECT.signs
   .filter(s=>s.route===route&&signPlanDirection(s)===dir)
   .sort((a,b)=>{
+   if(route==="IA-1"){
+    return (Number(a.sign_no)||999999)-(Number(b.sign_no)||999999);
+   }
    const ao=PLAN_SIGN_INDEX?.[a.id]??999999;
    const bo=PLAN_SIGN_INDEX?.[b.id]??999999;
    return ao-bo;
@@ -1537,12 +1570,24 @@ function stopTravelCompare(a,b){
   return (order[ad]||9)-(order[bd]||9);
  }
 
- // Preserve the original imported plan-sheet sequence.
- const aOrder=Math.min(...routeStopSigns(a).map(planSequence));
- const bOrder=Math.min(...routeStopSigns(b).map(planSequence));
+ const aSigns=routeStopSigns(a);
+ const bSigns=routeStopSigns(b);
+
+ // IA-1 plans use sign-number roadway blocks:
+ // 1-498 Northbound and 499-924 Southbound.
+ // Numeric sign order is the practical route order for both blocks.
+ if(a.route==="IA-1" && b.route==="IA-1"){
+  const aNumber=Math.min(...aSigns.map(s=>Number(s.sign_no)||999999));
+  const bNumber=Math.min(...bSigns.map(s=>Number(s.sign_no)||999999));
+  if(aNumber!==bNumber)return aNumber-bNumber;
+ }
+
+ // All other routes retain original imported plan sequence.
+ const aOrder=Math.min(...aSigns.map(planSequence));
+ const bOrder=Math.min(...bSigns.map(planSequence));
  if(aOrder!==bOrder)return aOrder-bOrder;
 
- // GPS/milepost is only a tie-breaker for signs occupying the same plan position.
+ // Final tie-breaker.
  const am=Number(a.milepost??999999),bm=Number(b.milepost??999999);
  return travelAscending(ad)?am-bm:bm-am;
 }
@@ -1783,15 +1828,31 @@ function normalizedMutcdCode(sign){
 function mutcdImageUrl(sign){
  const code=normalizedMutcdCode(sign);
  if(!code)return"";
- return `https://commons.wikimedia.org/wiki/Special:Redirect/file/MUTCD_${encodeURIComponent(code)}.svg?width=220`;
+ const filename=`MUTCD ${code}.svg`;
+ return `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(filename)}?width=220`;
 }
 function mutcdImageHtml(sign,compact=false){
  const image=mutcdImageUrl(sign);
- if(!image)return`<div class="mutcd-image-fallback${compact?" compact":""}">${esc(sign?.mutcd||"No preview")}</div>`;
+ const code=esc(sign?.mutcd||"MUTCD");
+ const description=esc(sign?.description||"Sign");
+ const fallback=`<div class="mutcd-generated-fallback">
+  <div class="mutcd-generated-code">${code}</div>
+  <div class="mutcd-generated-description">${description}</div>
+ </div>`;
+
+ if(!image){
+  return `<div class="mutcd-image-wrap${compact?" compact":""}">${fallback}</div>`;
+ }
+
  return `<div class="mutcd-image-wrap${compact?" compact":""}">
-  <img loading="lazy" src="${image}" alt="${esc(sign.mutcd||"MUTCD")} ${esc(sign.description||"sign")}"
+  <img loading="lazy"
+   src="${image}"
+   alt="${code} ${description}"
    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-  <div class="mutcd-image-fallback" style="display:none">${esc(sign.mutcd||"Preview unavailable")}</div>
+  <div class="mutcd-generated-fallback" style="display:none">
+   <div class="mutcd-generated-code">${code}</div>
+   <div class="mutcd-generated-description">${description}</div>
+  </div>
  </div>`;
 }
 
@@ -2206,10 +2267,10 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await loadExtraWork();
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
- if(status)status.textContent=count?`Plan-order routing active · roadway-side blocks · ${count} audited signs`:"Plan-order routing fallback active";
+ if(status)status.textContent=count?`IA-1 numeric route order active · roadway-side blocks · ${count} audited signs`:"Plan-order routing fallback active";
  initFilters();applyAssignmentFilters();renderDashboard();renderCurrentAssignment();renderCrewRequestHistory();
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.07</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.1 · Build 2026.08.05.08</div>
 </body></html>
