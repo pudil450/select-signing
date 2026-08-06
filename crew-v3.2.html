@@ -2155,30 +2155,140 @@ function fieldSignHtml(s){
  ${extraWorkHtml(s)}
  </div>`;
 }
-function setInstallStatus(id,status,val){
- const st=signState(id),s=PROJECT.signs.find(x=>x.id===id);
+async function setInstallStatus(id,status,val){
+ const st=signState(id);
+ const s=PROJECT.signs.find(x=>x.id===id);
+ if(!s)return;
+
  if(status==='installed'){
   st.completed=val;
   st.not_installed=false;
   if(val)st.reason='';
   st.completed_at=val?new Date().toISOString():null;
-  addEvent(val?'sign_completed':'sign_reopened',`${val?'Installed':'Reopened'} sign ${s?s.sign_no:id}`,id,s?s.location_id:null);
+  st.completed_by=val?(V2_PROFILE?.full_name||state.crew||"Crew"):"";
+  addEvent(val?'sign_completed':'sign_reopened',`${val?'Installed':'Reopened'} sign ${s.sign_no}`,id,s.location_id);
  }else{
   st.not_installed=val;
   st.completed=false;
   if(!val)st.reason='';
   st.completed_at=null;
-  addEvent(val?'sign_not_installed':'sign_reopened',`${val?'Marked not installed':'Reopened'} sign ${s?s.sign_no:id}`,id,s?s.location_id:null);
+  st.completed_by="";
+  addEvent(val?'sign_not_installed':'sign_reopened',`${val?'Marked not installed':'Reopened'} sign ${s.sign_no}`,id,s.location_id);
  }
+
+ state.signs[id]=st;
  save();
  renderFieldLocations(currentFieldLocations);
- if(currentFieldLocations.length&&currentFieldLocations.every(l=>locResolved(l)))endWorkDay(true);
+
+ if(V2_SESSION){
+  try{
+   if(!val){
+    const response=await fetch(
+     LIVE_SUPABASE_URL+
+     "/rest/v1/sign_user_progress?sign_id=eq."+
+     encodeURIComponent(id),
+     {
+      method:"DELETE",
+      headers:{...v2AuthHeaders(),"Prefer":"return=minimal"}
+     }
+    );
+    if(!response.ok)throw new Error(await response.text());
+   }else{
+    const liveStatus=status==='installed'?'installed':'not_installed';
+    const payload={
+     sign_id:s.id,
+     sign_no:String(s.sign_no),
+     route:s.route,
+     roadway_side:typeof signPlanDirection==="function"
+      ?signPlanDirection(s)
+      :(s.traffic_direction||s.direction||""),
+     status:liveStatus,
+     completed_by:V2_SESSION.user.id,
+     completed_by_name:V2_PROFILE?.full_name||state.crew||"Crew",
+     completed_at:new Date().toISOString(),
+     notes:st.notes||"",
+     out_of_sequence:false,
+     updated_at:new Date().toISOString()
+    };
+
+    const response=await fetch(
+     LIVE_SUPABASE_URL+
+     "/rest/v1/sign_user_progress?on_conflict=sign_id",
+     {
+      method:"POST",
+      headers:{
+       ...v2AuthHeaders(),
+       "Prefer":"resolution=merge-duplicates,return=minimal"
+      },
+      body:JSON.stringify(payload)
+     }
+    );
+    if(!response.ok)throw new Error(await response.text());
+   }
+
+   if(typeof v3Toast==="function"){
+    v3Toast(val
+     ?`Sign ${s.sign_no} synced as ${status==='installed'?'Installed':'Not Installed'}`
+     :`Sign ${s.sign_no} reopened`);
+   }
+  }catch(error){
+   console.error(error);
+   alert(
+    "Status saved on this device, but live sync failed.\n\n"+
+    error.message
+   );
+  }
+ }
+
+ if(currentFieldLocations.length&&currentFieldLocations.every(l=>locResolved(l))){
+  endWorkDay(true);
+ }
 }
 function setComplete(id,val){setInstallStatus(id,'installed',val)}
-function updateField(id,key,val){signState(id)[key]=val;save();renderFieldLocations(currentFieldLocations)}
-function renderAllSigns(){
- const q=document.getElementById('allSearch').value.toLowerCase(),body=document.getElementById('allSignRows');body.innerHTML='';
- PROJECT.signs.filter(s=>(s.sign_no+' '+s.route+' '+s.description+' '+s.remarks).toLowerCase().includes(q)).forEach(s=>{const st=signState(s.id),tr=document.createElement('tr');if(st.completed)tr.classList.add('completed');tr.innerHTML=`<td><input type="checkbox" ${st.completed?'checked':''} onchange="setComplete('${s.id}',this.checked);renderAllSigns()"></td><td><b>${esc(s.sign_no)}</b></td><td>${s.route}</td><td>${s.milepost??''}</td><td>${s.traffic_direction}</td><td>${s.anchor_type}</td><td>${esc(s.left_post_length??'')}</td><td>${esc(s.right_post_length??(s.post_configuration==='Single post'?'Single post':''))}</td><td>${esc(s.installation_dimension??'')}</td><td>${esc(s.description)}</td><td><input value="${esc(st.notes)}" onchange="updateField('${s.id}','notes',this.value)"></td>`;body.appendChild(tr)})
+async function updateField(id,key,val){
+ const st=signState(id);
+ st[key]=val;
+ state.signs[id]=st;
+ save();
+ renderFieldLocations(currentFieldLocations);
+
+ if(st.not_installed&&V2_SESSION){
+  const s=PROJECT.signs.find(x=>x.id===id);
+  if(!s)return;
+  try{
+   const payload={
+    sign_id:s.id,
+    sign_no:String(s.sign_no),
+    route:s.route,
+    roadway_side:typeof signPlanDirection==="function"
+     ?signPlanDirection(s)
+     :(s.traffic_direction||s.direction||""),
+    status:"not_installed",
+    completed_by:V2_SESSION.user.id,
+    completed_by_name:V2_PROFILE?.full_name||state.crew||"Crew",
+    completed_at:new Date().toISOString(),
+    notes:[st.reason,st.notes].filter(Boolean).join(" — "),
+    out_of_sequence:false,
+    updated_at:new Date().toISOString()
+   };
+   const response=await fetch(
+    LIVE_SUPABASE_URL+
+    "/rest/v1/sign_user_progress?on_conflict=sign_id",
+    {
+     method:"POST",
+     headers:{
+      ...v2AuthHeaders(),
+      "Prefer":"resolution=merge-duplicates,return=minimal"
+     },
+     body:JSON.stringify(payload)
+    }
+   );
+   if(!response.ok)throw new Error(await response.text());
+  }catch(error){
+   console.error(error);
+   alert("Could not sync Not Installed details: "+error.message);
+  }
+ }
 }
 
 
@@ -2351,5 +2461,5 @@ const initialTimelineDate=document.getElementById('timelineDate');if(initialTime
  await v2LoadMyClaim();v3UpdateRouteDashboard();v2RefreshClaims();setInterval(v2RefreshClaims,30000);
 })();
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.2 · Build 2026.08.06.01</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Crew V3.2 · Build 2026.08.06.02</div>
 </body></html>
