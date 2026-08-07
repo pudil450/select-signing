@@ -186,6 +186,32 @@ html{scroll-padding-top:145px}
 .office-sign-table tr:hover .sticky-col{background:#fff7ed}
 .office-sign-table thead .sticky-col{background:#f97316}
 
+
+.billing-page{scroll-margin-top:145px}
+.billing-title-row{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.billing-controls{display:grid!important;grid-template-columns:minmax(180px,280px) minmax(180px,280px);gap:12px!important}
+.billing-controls select{width:100%}
+.billing-table-wrap{overflow:auto;border:1px solid #d1d5db;border-radius:10px}
+.billing-table{width:100%;border-collapse:collapse;min-width:920px;background:white}
+.billing-table th{position:sticky;top:0;background:#171717;color:white;padding:11px;text-align:left}
+.billing-table td{padding:10px 11px;border-bottom:1px solid #e5e7eb;vertical-align:middle}
+.billing-table tr:nth-child(even) td{background:#f8fafc}
+.billing-number{text-align:right;font-variant-numeric:tabular-nums}
+.billing-prev-input{width:110px;text-align:right}
+.billing-current{font-weight:900;color:#166534}
+.billing-negative{color:#991b1b}
+.billing-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.billing-item-detail{display:block;color:#6b7280;font-size:11px;margin-top:3px}
+@media(max-width:700px){.billing-controls{grid-template-columns:1fr!important}}
+@media print{
+ header,nav,.billing-controls,.billing-actions,#billingSyncStatus{display:none!important}
+ .tab{display:none!important}
+ #officialQuantities{display:block!important}
+ .billing-page{box-shadow:none!important;border:0!important}
+ .billing-table-wrap{overflow:visible;border:0}
+ .billing-table{min-width:0;font-size:10px}
+}
+
 </style>
 </head>
 <body>
@@ -203,6 +229,7 @@ html{scroll-padding-top:145px}
 <button onclick="showTab('timeline',this)">Timeline</button>
 
 <button onclick="showTab('allSigns',this)">All Signs</button>
+<button onclick="showTab('officialQuantities',this);billingRefresh()">Official Quantities</button>
 </nav>
 <main>
 <section id="dashboard" class="active">
@@ -413,6 +440,73 @@ html{scroll-padding-top:145px}
   </div>
 
   <div id="officeAllSignsList"></div>
+ </div>
+</section>
+
+<section id="officialQuantities" class="tab">
+ <div class="card billing-page">
+  <div class="billing-title-row">
+   <div>
+    <h2>Official Quantities</h2>
+    <p class="note">Billing quantities from the plan data and live field completion records. Extra Work stays separate from planned work.</p>
+   </div>
+   <button class="primary" onclick="billingRefresh()">Refresh Live Quantities</button>
+  </div>
+
+  <div class="controls billing-controls">
+   <label>Route
+    <select id="billingRoute" onchange="billingRender()">
+     <option value="all">All routes</option>
+    </select>
+   </label>
+   <label>Roadway side
+    <select id="billingDirection" onchange="billingRender()">
+     <option value="all">All roadway sides</option>
+    </select>
+   </label>
+  </div>
+
+  <div id="billingSyncStatus" class="note">Loading live quantities…</div>
+
+  <h3>Plan / Contract Work</h3>
+  <div class="billing-table-wrap">
+   <table class="billing-table">
+    <thead>
+     <tr>
+      <th>Pay Quantity</th>
+      <th>Unit</th>
+      <th>Planned</th>
+      <th>Installed to Date</th>
+      <th>Previously Billed</th>
+      <th>This Billing</th>
+      <th>Remaining</th>
+     </tr>
+    </thead>
+    <tbody id="billingPlanRows"></tbody>
+   </table>
+  </div>
+
+  <h3 style="margin-top:24px">Extra Work — Not on Plans</h3>
+  <p class="note">These quantities come only from crew Extra Work entries and do not change the original plan quantity.</p>
+  <div class="billing-table-wrap">
+   <table class="billing-table">
+    <thead>
+     <tr>
+      <th>Extra Work Item</th>
+      <th>Unit</th>
+      <th>Recorded to Date</th>
+      <th>Previously Billed</th>
+      <th>This Billing</th>
+     </tr>
+    </thead>
+    <tbody id="billingExtraRows"></tbody>
+   </table>
+  </div>
+
+  <div class="billing-actions">
+   <button onclick="billingPrint()">Print / Save PDF</button>
+   <button onclick="billingExportCsv()">Export CSV</button>
+  </div>
  </div>
 </section>
 </main>
@@ -1458,7 +1552,7 @@ document.getElementById('projectTitle').textContent=PROJECT.project_name+' · v2
  const count=await loadRouteOverrides();
  const status=document.getElementById("routeAuditStatus");
  if(status)status.textContent=count?`Roadway-side audit active · ${count} signs loaded`:"Roadway-side audit unavailable · fallback routing active";
- initFilters();refreshSavedCrewControls();renderCrewRequests();initAssignmentControls();renderDashboard();officeInitAllSigns();
+ initFilters();refreshSavedCrewControls();renderCrewRequests();initAssignmentControls();renderDashboard();officeInitAllSigns();billingPopulateFilters();
  refreshLiveProgress(true);v2RefreshClaims();setInterval(()=>refreshLiveProgress(true),30000);setInterval(v2RefreshClaims,30000);
 })();
 
@@ -1858,6 +1952,289 @@ function officeResetIA1NBStatuses(){
  alert("IA-1 Northbound status updated.");
 }
 
+
+let BILLING_PROGRESS={};
+let BILLING_EXTRA_WORK=[];
+let BILLING_PREVIOUS={};
+
+function billingDirectionForSign(sign){
+ if(typeof officeSignDirection==="function")return officeSignDirection(sign);
+ if(typeof signPlanDirection==="function")return signPlanDirection(sign);
+ return sign.traffic_direction||sign.direction||"Unknown";
+}
+
+function billingSignInstalled(sign){
+ const live=BILLING_PROGRESS[sign.id];
+ if(live)return live.status==="installed";
+
+ // Office-local override takes precedence when present on this device.
+ const local=state.signs?.[sign.id];
+ if(local&&local.completed===true)return true;
+ if(local&&(local.not_installed||local.reason||local.return_trip))return false;
+
+ return !!sign.completed_initial;
+}
+
+function billingFilteredSigns(){
+ const route=document.getElementById("billingRoute")?.value||"all";
+ const direction=document.getElementById("billingDirection")?.value||"all";
+ return PROJECT.signs.filter(sign=>
+  (route==="all"||sign.route===route) &&
+  (direction==="all"||billingDirectionForSign(sign)===direction)
+ );
+}
+
+function billingPopulateFilters(){
+ const routeEl=document.getElementById("billingRoute");
+ const dirEl=document.getElementById("billingDirection");
+ if(!routeEl||!dirEl)return;
+
+ const currentRoute=routeEl.value||"all";
+ const routes=[...new Set(PROJECT.signs.map(s=>s.route))].sort();
+ routeEl.innerHTML='<option value="all">All routes</option>'+
+  routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join("");
+ if([...routeEl.options].some(o=>o.value===currentRoute))routeEl.value=currentRoute;
+
+ const currentDir=dirEl.value||"all";
+ const dirs=[...new Set(PROJECT.signs
+  .filter(s=>routeEl.value==="all"||s.route===routeEl.value)
+  .map(billingDirectionForSign)
+  .filter(Boolean))];
+ dirEl.innerHTML='<option value="all">All roadway sides</option>'+
+  dirs.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join("");
+ if([...dirEl.options].some(o=>o.value===currentDir))dirEl.value=currentDir;
+}
+
+function billingScope(){
+ return `${document.getElementById("billingRoute")?.value||"all"}|${document.getElementById("billingDirection")?.value||"all"}`;
+}
+
+function billingQuantityRows(){
+ const signs=billingFilteredSigns();
+ const installed=signs.filter(billingSignInstalled);
+
+ const signArea=list=>list.reduce((sum,s)=>sum+(Number(s.sign_width||0)*Number(s.sign_height||0)/144),0);
+ const soil=list=>list.reduce((sum,s)=>sum+Number(s.soil_anchor_quantity||0),0);
+ const slip=list=>list.reduce((sum,s)=>sum+Number(s.slip_base_quantity||0),0);
+ const postLF=list=>list.reduce((sum,s)=>sum+Number(s.left_post_length||0)+Number(s.right_post_length||0),0);
+ const postPieces=list=>list.reduce((sum,s)=>sum+(Number(s.left_post_length||0)>0?1:0)+(Number(s.right_post_length||0)>0?1:0),0);
+
+ return [
+  {key:"sign_count",label:"Signs",unit:"EA",planned:signs.length,installed:installed.length,detail:"All plan signs in selected scope"},
+  {key:"sign_area_sf",label:"Sign Area",unit:"SF",planned:signArea(signs),installed:signArea(installed),detail:"Calculated from plan sign width × height"},
+  {key:"soil_anchor",label:"Soil Anchors",unit:"EA",planned:soil(signs),installed:soil(installed),detail:"Plan soil-anchor quantity"},
+  {key:"slip_base",label:"Slip-Base Anchors",unit:"EA",planned:slip(signs),installed:slip(installed),detail:"Plan slip-base quantity"},
+  {key:"posts_lf",label:"Sign Posts",unit:"LF",planned:postLF(signs),installed:postLF(installed),detail:`${postPieces(signs)} planned post pieces`}
+ ];
+}
+
+function billingFilteredExtra(){
+ const route=document.getElementById("billingRoute")?.value||"all";
+ const direction=document.getElementById("billingDirection")?.value||"all";
+ return BILLING_EXTRA_WORK.filter(row=>
+  (route==="all"||row.route===route) &&
+  (direction==="all"||String(row.roadway_side||"")===direction)
+ );
+}
+
+function billingExtraRowsData(){
+ const rows=billingFilteredExtra();
+ const soil=rows.filter(r=>r.added_anchor_type==="Soil").length;
+ const slip=rows.filter(r=>r.added_anchor_type==="Slip-Base").length;
+ const remove=rows.reduce((sum,r)=>sum+Number(r.remove_assembly_qty||0),0);
+
+ const postMap={};
+ for(const r of rows){
+  const size=Number(r.added_post_size||0);
+  const qty=Number(r.added_post_qty||0);
+  if(size>0&&qty>0)postMap[size]=(postMap[size]||0)+qty;
+ }
+
+ const data=[
+  {key:"extra_soil_anchor",label:"Added Soil Anchors",unit:"EA",qty:soil},
+  {key:"extra_slip_base",label:"Added Slip-Base Anchors",unit:"EA",qty:slip},
+  {key:"extra_remove_assembly",label:"Remove Assembly",unit:"EA",qty:remove}
+ ];
+
+ for(const size of Object.keys(postMap).map(Number).sort((a,b)=>a-b)){
+  data.push({
+   key:`extra_post_${size}`,
+   label:`Added ${size} ft Posts`,
+   unit:"EA",
+   qty:postMap[size]
+  });
+ }
+ return data;
+}
+
+function billingFormat(value,unit){
+ const n=Number(value||0);
+ if(unit==="SF"||unit==="LF")return n.toFixed(1);
+ return Math.round(n).toString();
+}
+
+function billingPreviousKey(itemKey){
+ return `${billingScope()}|${itemKey}`;
+}
+
+function billingPrev(itemKey){
+ return Number(BILLING_PREVIOUS[billingPreviousKey(itemKey)]||0);
+}
+
+async function billingSetPrevious(itemKey,value){
+ const qty=Math.max(0,Number(value||0));
+ const scope=billingScope();
+ const key=`${scope}|${itemKey}`;
+ BILLING_PREVIOUS[key]=qty;
+ billingRender();
+
+ if(!V2_SESSION)return;
+ try{
+  const payload={
+   scope,
+   item_key:itemKey,
+   previously_billed:qty,
+   updated_by:V2_SESSION.user.id,
+   updated_by_name:V2_PROFILE?.full_name||"Office",
+   updated_at:new Date().toISOString()
+  };
+  const response=await fetch(
+   LIVE_SUPABASE_URL+"/rest/v1/billing_previous_quantities?on_conflict=scope,item_key",
+   {
+    method:"POST",
+    headers:{...v2AuthHeaders(),"Prefer":"resolution=merge-duplicates,return=minimal"},
+    body:JSON.stringify(payload)
+   }
+  );
+  if(!response.ok)throw new Error(await response.text());
+ }catch(error){
+  console.error(error);
+  alert("Previously billed quantity saved on screen, but Supabase sync failed: "+error.message);
+ }
+}
+
+function billingRender(){
+ billingPopulateFilters();
+
+ const planBody=document.getElementById("billingPlanRows");
+ const extraBody=document.getElementById("billingExtraRows");
+ if(!planBody||!extraBody)return;
+
+ const plan=billingQuantityRows();
+ planBody.innerHTML=plan.map(row=>{
+  const previous=billingPrev(row.key);
+  const current=Math.max(0,row.installed-previous);
+  const remaining=Math.max(0,row.planned-row.installed);
+  return `<tr>
+   <td><b>${esc(row.label)}</b><span class="billing-item-detail">${esc(row.detail||"")}</span></td>
+   <td>${row.unit}</td>
+   <td class="billing-number">${billingFormat(row.planned,row.unit)}</td>
+   <td class="billing-number"><b>${billingFormat(row.installed,row.unit)}</b></td>
+   <td class="billing-number"><input class="billing-prev-input" type="number" min="0" step="${row.unit==="EA"?"1":"0.1"}" value="${previous}" onchange="billingSetPrevious('${row.key}',this.value)"></td>
+   <td class="billing-number billing-current">${billingFormat(current,row.unit)}</td>
+   <td class="billing-number">${billingFormat(remaining,row.unit)}</td>
+  </tr>`;
+ }).join("");
+
+ const extra=billingExtraRowsData();
+ extraBody.innerHTML=extra.length?extra.map(row=>{
+  const previous=billingPrev(row.key);
+  const current=Math.max(0,row.qty-previous);
+  return `<tr>
+   <td><b>${esc(row.label)}</b></td>
+   <td>${row.unit}</td>
+   <td class="billing-number"><b>${billingFormat(row.qty,row.unit)}</b></td>
+   <td class="billing-number"><input class="billing-prev-input" type="number" min="0" step="1" value="${previous}" onchange="billingSetPrevious('${row.key}',this.value)"></td>
+   <td class="billing-number billing-current">${billingFormat(current,row.unit)}</td>
+  </tr>`;
+ }).join(""):'<tr><td colspan="5">No Extra Work has been recorded in this scope.</td></tr>';
+}
+
+async function billingRefresh(){
+ const status=document.getElementById("billingSyncStatus");
+ if(status)status.textContent="Refreshing live crew progress and Extra Work…";
+
+ try{
+  billingPopulateFilters();
+
+  const [progressResponse,extraResponse,previousResponse]=await Promise.all([
+   fetch(LIVE_SUPABASE_URL+"/rest/v1/sign_user_progress?select=sign_id,status,completed_at,completed_by_name,updated_at",{headers:v2AuthHeaders()}),
+   fetch(LIVE_SUPABASE_URL+"/rest/v1/sign_extra_work?select=sign_id,sign_no,route,roadway_side,added_anchor_type,added_post_size,added_post_qty,remove_assembly_qty,notes,entered_by_name,updated_at",{headers:v2AuthHeaders()}),
+   fetch(LIVE_SUPABASE_URL+"/rest/v1/billing_previous_quantities?select=scope,item_key,previously_billed",{headers:v2AuthHeaders()})
+  ]);
+
+  if(!progressResponse.ok)throw new Error("Progress: "+await progressResponse.text());
+  if(!extraResponse.ok)throw new Error("Extra Work: "+await extraResponse.text());
+  if(!previousResponse.ok)throw new Error("Billing setup: "+await previousResponse.text());
+
+  const progress=await progressResponse.json();
+  BILLING_PROGRESS={};
+  for(const row of progress)BILLING_PROGRESS[row.sign_id]=row;
+
+  BILLING_EXTRA_WORK=await extraResponse.json();
+
+  BILLING_PREVIOUS={};
+  for(const row of await previousResponse.json()){
+   BILLING_PREVIOUS[`${row.scope}|${row.item_key}`]=Number(row.previously_billed||0);
+  }
+
+  billingRender();
+  if(status){
+   const installed=progress.filter(r=>r.status==="installed").length;
+   status.textContent=`Live sync loaded · ${installed} installed progress records · ${BILLING_EXTRA_WORK.length} extra-work records`;
+  }
+ }catch(error){
+  console.error(error);
+  if(status)status.textContent="Could not refresh billing data: "+error.message;
+ }
+}
+
+function billingPrint(){
+ window.print();
+}
+
+function billingExportCsv(){
+ const plan=billingQuantityRows();
+ const extra=billingExtraRowsData();
+ const lines=[["Section","Item","Unit","Planned/Recorded","Installed to Date","Previously Billed","This Billing","Remaining"]];
+
+ for(const row of plan){
+  const prev=billingPrev(row.key);
+  lines.push([
+   "Plan",
+   row.label,
+   row.unit,
+   row.planned,
+   row.installed,
+   prev,
+   Math.max(0,row.installed-prev),
+   Math.max(0,row.planned-row.installed)
+  ]);
+ }
+ for(const row of extra){
+  const prev=billingPrev(row.key);
+  lines.push([
+   "Extra Work",
+   row.label,
+   row.unit,
+   row.qty,
+   row.qty,
+   prev,
+   Math.max(0,row.qty-prev),
+   ""
+  ]);
+ }
+
+ const csv=lines.map(row=>row.map(value=>`"${String(value??"").replaceAll('"','""')}"`).join(",")).join("\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download=`select-signing-official-quantities-${new Date().toISOString().slice(0,10)}.csv`;
+ a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 </script>
-<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.2 · Build 2026.08.06.01</div>
+<div style="position:fixed;right:8px;bottom:6px;font-size:10px;color:#6b7280;background:#ffffffd9;padding:3px 6px;border-radius:5px;z-index:5000">Office V3.2 · Build 2026.08.07.03</div>
 </body></html>
